@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MVGFC Admin Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+    }
+
+    .header {
+      background: white;
+      padding: 15px 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      color: #2D7A3E;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /*.notification-badge {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .notification-badge span {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #e74c3c;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+    }*/
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .profile-icon {
+      width: 35px;
+      height: 35px;
+      background: #2D7A3E;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .container {
+      display: flex;
+      height: calc(100vh - 65px);
+    }
+
+    .sidebar {
+      width: 300px;
+      background: white;
+      border-right: 1px solid #e0e0e0;
+      overflow-y: auto;
+    }
+
+    .stats-bar {
+      display: flex;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+      border-right: 1px solid #e0e0e0;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .stat-item:last-child {
+      border-right: none;
+    }
+
+    .stat-item:hover {
+      background: #f8f9fa;
+    }
+
+    .stat-item.active {
+      background: #e8f5e9;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2D7A3E;
+    }
+
+    .tickets-list {
+      overflow-y: auto;
+      height: calc(100vh - 185px);
+    }
+
+    .ticket-item {
+      padding: 15px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .ticket-item:hover {
+      background: #f8f9fa;
+    }
+
+    .ticket-item.active {
+      background: #e8f5e9;
+      border-left: 4px solid #2D7A3E;
+    }
+
+    .ticket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .ticket-number {
+      font-weight: bold;
+      color: #2D7A3E;
+      font-size: 14px;
+    }
+
+    .ticket-status {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-new { background: #e3f2fd; color: #1976d2; }
+    .status-open { background: #fff3e0; color: #f57c00; }
+    .status-ongoing { background: #e8f5e9; color: #2D7A3E; }
+    .status-resolved { background: #e0e0e0; color: #666; }
+    .status-on-hold { background: #ffecb3; color: #f57f17; }
+    .status-closed-today { background: #f5f5f5; color: #999; }
+
+    .ticket-user {
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 3px;
+    }
+
+    .ticket-subject {
+      font-size: 12px;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .main-content {
+      flex: 1;
+      background: white;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ticket-detail-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+    }
+
+    .ticket-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    select, button {
+      padding: 8px 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    select {
+      background: white;
+    }
+
+    button {
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #246830;
+    }
+
+    button.secondary {
+      background: white;
+      color: #2D7A3E;
+      border: 1px solid #2D7A3E;
+    }
+
+    button.secondary:hover {
+      background: #f0f2f5;
+    }
+
+    .ticket-info {
+      display: flex;
+      gap: 30px;
+      margin-top: 15px;
+      font-size: 13px;
+    }
+
+    .info-item {
+      color: #666;
+    }
+
+    .info-label {
+      font-weight: 600;
+      margin-right: 5px;
+    }
+
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 30px;
+      background: #f8f9fa;
+    }
+
+    .message-bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .message-customer {
+      background: white;
+      border: 1px solid #e0e0e0;
+    }
+
+    .message-agent {
+      background: #2D7A3E;
+      color: white;
+      margin-left: auto;
+    }
+
+    .message-internal {
+      background: #fff9e6;
+      border: 1px solid #ffe082;
+      font-style: italic;
+    }
+
+    .message-sender {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 5px;
+    }
+
+    .chat-input-area {
+      padding: 20px 30px;
+      border-top: 1px solid #e0e0e0;
+      background: white;
+    }
+
+    .chat-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .chat-tab {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .chat-tab.active {
+      background: #2D7A3E;
+      color: white;
+      border-color: #2D7A3E;
+    }
+
+    .chat-tab-icon {
+      margin-right: 5px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .send-btn {
+      padding: 12px 25px;
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+      }
+      .main-content {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Aftersales MU Chats</h1>
+    <div class="header-right">
+      <!--<div class="notification-badge" onclick="filterByNew()">
+        🔔
+        <span id="notificationCount">0</span>
+      </div>-->
+      <div class="profile">
+        <div class="profile-icon">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="stats-bar">
+        <div class="stat-item" onclick="filterTickets('Open')">
+          <div class="stat-label">OPEN</div>
+          <div class="stat-value" id="statOpen">0</div>
+        </div>
+        <div class="stat-item" onclick="filterTickets('New')">
+          <div class="stat-label">NEW</div>
+          <div class="stat-value" id="statNew">0</div>
+        </div>
+        <div class="stat-item" onclick="filterTickets('On Hold')">
+          <div class="stat-label">ON HOLD</div>
+          <div class="stat-value" id="statOnHold">0</div>
+        </div>
+        <div class="stat-item" onclick="filterTickets('Closed Today')">
+          <div class="stat-label">CLOSED TODAY</div>
+          <div class="stat-value" id="statClosed">0</div>
+        </div>
+      </div>
+
+      <div class="tickets-list" id="ticketsList">
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <p>No tickets yet</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+      <div class="empty-state">
+        <div class="empty-state-icon">💬</div>
+        <h3>Select a ticket to view details</h3>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let tickets = [];
+    let currentTicket = null;
+    let currentFilter = null;
+    let isInternalNote = false;
+
+    // Load tickets on page load
+    loadTickets();
+    setInterval(loadTickets, 5000); // Auto-refresh every 5 seconds
+    setInterval(loadNotifications, 10000); // Check notifications every 10 seconds
+
+    async function loadTickets() {
+      try {
+        const response = await fetch('/api/tickets');
+        const data = await response.json();
+
+        if (data.success) {
+          tickets = data.tickets;
+          updateStats(data.stats);
+          displayTickets(tickets);
+          
+          // Reload current ticket if open
+          if (currentTicket) {
+            const updated = tickets.find(t => t.ticketNumber === currentTicket.ticketNumber);
+            if (updated) {
+              currentTicket = updated;
+              displayTicketInfo();
+              displayMessages();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading tickets:', error);
+      }
+    }
+
+    async function loadNotifications() {
+      try {
+        const response = await fetch('/api/notifications');
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('notificationCount').textContent = data.count;
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    }
+
+    function updateStats(stats) {
+      document.getElementById('statOpen').textContent = stats.open;
+      document.getElementById('statNew').textContent = stats.new;
+      document.getElementById('statOnHold').textContent = stats.onHold;
+      document.getElementById('statClosed').textContent = stats.closedToday;
+    }
+
+    function displayTickets(ticketsToShow) {
+      const ticketsList = document.getElementById('ticketsList');
+      
+      if (ticketsToShow.length === 0) {
+        ticketsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <p>No tickets found</p>
+          </div>
+        `;
+        return;
+      }
+
+      ticketsList.innerHTML = ticketsToShow.map(ticket => `
+        <div class="ticket-item ${currentTicket && currentTicket.ticketNumber === ticket.ticketNumber ? 'active' : ''}" 
+             onclick="selectTicket('${ticket.ticketNumber}')">
+          <div class="ticket-header">
+            <span class="ticket-number">#${ticket.ticketNumber}</span>
+            <span class="ticket-status status-${ticket.status.toLowerCase().replace(/ /g, '-')}">${ticket.status}</span>
+          </div>
+          <div class="ticket-user">${escapeHtml(ticket.username)}</div>
+          <div class="ticket-subject">${escapeHtml(ticket.subject)}</div>
+        </div>
+      `).join('');
+    }
+
+    async function selectTicket(ticketNumber) {
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}`);
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicket = data.ticket;
+          displayTicketDetail(data.ticket);
+          
+          // Update active state in list
+          document.querySelectorAll('.ticket-item').forEach(item => {
+            item.classList.remove('active');
+          });
+          event.currentTarget.classList.add('active');
+        }
+      } catch (error) {
+        console.error('Error loading ticket:', error);
+      }
+    }
+
+    function displayTicketDetail(ticket) {
+      const mainContent = document.getElementById('mainContent');
+      
+      mainContent.innerHTML = `
+        <div class="ticket-detail-header" id="ticketDetailHeader">
+          <!-- Header will be inserted by displayTicketInfo() -->
+        </div>
+
+        <div class="chat-area" id="chatArea">
+          <!-- Messages will be inserted by displayMessages() -->
+        </div>
+
+        <div class="chat-input-area" id="chatInputArea">
+          <div class="chat-tabs">
+            <div class="chat-tab ${!isInternalNote ? 'active' : ''}" onclick="setMessageType(false)">
+              <span class="chat-tab-icon">💬</span>
+              User Chat
+            </div>
+            <div class="chat-tab ${isInternalNote ? 'active' : ''}" onclick="setMessageType(true)">
+              <span class="chat-tab-icon">📝</span>
+              Internal Notes
+            </div>
+          </div>
+          <div class="input-group">
+            <input type="text" class="chat-input" id="messageInput" placeholder="${isInternalNote ? 'Add internal note...' : 'Type your message...'}" onkeypress="if(event.key==='Enter') sendMessage('${ticket.ticketNumber}')">
+            <button class="send-btn" onclick="sendMessage('${ticket.ticketNumber}')">Send</button>
+          </div>
+        </div>
+      `;
+
+      // Now populate the header and messages
+      displayTicketInfo();
+      displayMessages();
+    }
+
+    function displayTicketInfo() {
+      if (!currentTicket) return;
+      
+      const ticketDetailHeader = document.getElementById('ticketDetailHeader');
+      if (!ticketDetailHeader) return;
+
+      const statusClass = currentTicket.status.toLowerCase().replace(/ /g, '-');
+      ticketDetailHeader.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+          <div>
+            <h2>Ticket #${currentTicket.ticketNumber}</h2>
+            <p style="color: #666; margin-top: 5px;">${escapeHtml(currentTicket.subject)}</p>
+          </div>
+          <span class="ticket-status status-${statusClass}">${currentTicket.status}</span>
+        </div>
+        
+        <div class="ticket-info">
+          <div class="info-item">
+            <span class="info-label">User:</span>
+            ${escapeHtml(currentTicket.username)}
+          </div>
+          <div class="info-item">
+            <span class="info-label">Agent:</span>
+            ${currentTicket.assignedAgent || 'Unassigned'}
+          </div>
+          <div class="info-item">
+            <span class="info-label">Status:</span>
+            ${currentTicket.status}
+          </div>
+          <div class="info-item">
+            <span class="info-label">Created:</span>
+            ${formatDate(currentTicket.createdAt)}
+          </div>
+        </div>
+
+        <div class="ticket-controls">
+          <select id="assignAgent" onchange="assignAgent('${currentTicket.ticketNumber}', this.value)">
+            <option value="">Assign Agent</option>
+            <option value="Agent 1" ${currentTicket.assignedAgent === 'Agent 1' ? 'selected' : ''}>Agent 1</option>
+            <option value="Agent 2" ${currentTicket.assignedAgent === 'Agent 2' ? 'selected' : ''}>Agent 2</option>
+            <option value="Agent 3" ${currentTicket.assignedAgent === 'Agent 3' ? 'selected' : ''}>Agent 3</option>
+          </select>
+
+          <select id="changeStatus" onchange="changeStatus('${currentTicket.ticketNumber}', this.value)">
+            <option value="">Change Status</option>
+            <option value="New">New</option>
+            <option value="Open">Open</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed Today">Closed Today</option>
+          </select>
+
+          <button onclick="closeTicket('${currentTicket.ticketNumber}')">Close Ticket</button>
+        </div>
+      `;
+    }
+
+    function displayMessages() {
+      if (!currentTicket) return;
+
+      const chatArea = document.getElementById('chatArea');
+      if (!chatArea) return;
+
+      chatArea.innerHTML = currentTicket.messages.map(msg => `
+        <div class="message-bubble ${msg.isInternal ? 'message-internal' : (msg.sender === currentTicket.username ? 'message-customer' : 'message-agent')}">
+          <div class="message-sender">${escapeHtml(msg.sender)}${msg.isInternal ? ' (Internal Note)' : ''}</div>
+          <div>${escapeHtml(msg.message)}</div>
+          <div class="message-time">${formatTime(msg.createdAt)}</div>
+        </div>
+      `).join('');
+
+      // Auto-scroll to bottom
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function setMessageType(internal) {
+      isInternalNote = internal;
+      
+      // Update tabs
+      const tabs = document.querySelectorAll('.chat-tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      tabs[internal ? 1 : 0].classList.add('active');
+      
+      // Update input placeholder
+      const messageInput = document.getElementById('messageInput');
+      if (messageInput) {
+        messageInput.placeholder = internal ? 'Add internal note...' : 'Type your message...';
+      }
+    }
+
+    async function sendMessage(ticketNumber) {
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value.trim();
+
+      if (!message) return;
+
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sender: 'Admin',
+            message: message,
+            isInternal: isInternalNote
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          messageInput.value = '';
+          currentTicket = data.ticket;
+          displayMessages();
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
+    }
+
+    async function changeStatus(ticketNumber, status) {
+      if (!status) return;
+
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          loadTickets();
+        }
+      } catch (error) {
+        console.error('Error changing status:', error);
+      }
+    }
+
+    async function assignAgent(ticketNumber, agent) {
+      if (!agent) return;
+
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}/assign`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agent })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          loadTickets();
+        }
+      } catch (error) {
+        console.error('Error assigning agent:', error);
+      }
+    }
+
+    async function closeTicket(ticketNumber) {
+      if (!confirm('Are you sure you want to close this ticket?')) return;
+
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}/close`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          loadTickets();
+        }
+      } catch (error) {
+        console.error('Error closing ticket:', error);
+      }
+    }
+
+    function filterTickets(status) {
+      currentFilter = status;
+      const filtered = tickets.filter(t => t.status === status);
+      displayTickets(filtered);
+    }
+
+    function filterByNew() {
+      filterTickets('New');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(date) {
+      return new Date(date).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function formatTime(date) {
+      return new Date(date).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Load notifications on page load
+    loadNotifications();
+  </script>
+</body>
+</html>

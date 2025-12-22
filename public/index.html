@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MVGFC Support Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      overflow: hidden;
+    }
+
+    .header {
+      background: #2D7A3E;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .header a {
+      color: white;
+      text-decoration: underline;
+      font-size: 13px;
+      margin-top: 10px;
+      display: inline-block;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #2D7A3E;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .attachment-section {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      color: #999;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .attachment-icon {
+      margin-right: 10px;
+      font-size: 18px;
+    }
+
+    .send-button {
+      width: 100%;
+      padding: 14px;
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .send-button:hover {
+      background: #246830;
+    }
+
+    .send-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .success-icon {
+      font-size: 64px;
+      color: #2D7A3E;
+      margin-bottom: 20px;
+    }
+
+    .success-message h2 {
+      color: #2D7A3E;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .success-message p {
+      color: #666;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .ticket-number {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2D7A3E;
+      margin: 20px 0;
+    }
+
+    .new-ticket-button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      background: white;
+      color: #2D7A3E;
+      border: 2px solid #2D7A3E;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .new-ticket-button:hover {
+      background: #2D7A3E;
+      color: white;
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0;
+      }
+      
+      .container {
+        border-radius: 0;
+        min-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Message Us!</h1>
+      <p>Manuel V. Gallego Foundation Colleges</p>
+      <a href="/chat.html">Already have a ticket? Click here to chat</a>
+    </div>
+
+    <div class="content">
+      <div id="ticketForm">
+        <h2 class="section-title">MESSAGE YOUR CONCERN</h2>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <form id="supportForm">
+          <div class="form-group">
+            <label for="name">Your Name *</label>
+            <input 
+              type="text" 
+              id="name" 
+              placeholder="Enter your name"
+              required
+              maxlength="100"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input 
+              type="email" 
+              id="email" 
+              placeholder="your.email@example.com (optional)"
+              maxlength="100"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="subject">Subject *</label>
+            <input 
+              type="text" 
+              id="subject" 
+              placeholder="Brief description of your concern"
+              required
+              maxlength="200"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="message">Message Your Concern *</label>
+            <textarea 
+              id="message" 
+              placeholder="Describe your concern in detail..."
+              required
+              maxlength="1000"
+            ></textarea>
+          </div>
+
+          <div class="attachment-section">
+            <span class="attachment-icon">📎</span>
+            <span>Attachment (Feature coming soon)</span>
+          </div>
+
+          <button type="submit" class="send-button" id="sendButton">
+            Send
+          </button>
+        </form>
+      </div>
+
+      <div class="success-message" id="successMessage">
+        <div class="success-icon">✓</div>
+        <h2>Ticket Created Successfully!</h2>
+        <p>Your ticket number is:</p>
+        <div class="ticket-number" id="ticketNumberDisplay">#00000</div>
+        <p>We've received your concern and will respond shortly.</p>
+        <p style="font-size: 13px; color: #999; margin-top: 15px;">
+          Please save this ticket number for future reference.
+        </p>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          <button class="new-ticket-button" onclick="viewTicketChat()">
+            💬 View & Chat
+          </button>
+          <button class="new-ticket-button" onclick="createNewTicket()">
+            Create Another Ticket
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('supportForm');
+    const sendButton = document.getElementById('sendButton');
+    const ticketForm = document.getElementById('ticketForm');
+    const successMessage = document.getElementById('successMessage');
+    const ticketNumberDisplay = document.getElementById('ticketNumberDisplay');
+    const errorMessage = document.getElementById('errorMessage');
+    let createdTicketNumber = null;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const subject = document.getElementById('subject').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if (!name || !subject || !message) {
+        showError('Please fill in all required fields.');
+        return;
+      }
+
+      sendButton.disabled = true;
+      sendButton.textContent = 'Sending...';
+      errorMessage.classList.remove('show');
+
+      try {
+        const response = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: name,
+            email: email,
+            subject: subject,
+            message: message
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          createdTicketNumber = data.ticket.ticketNumber;
+          ticketNumberDisplay.textContent = `#${createdTicketNumber}`;
+          ticketForm.style.display = 'none';
+          successMessage.classList.add('show');
+          form.reset();
+        } else {
+          showError(data.error || 'Failed to create ticket. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Connection error. Please check your internet and try again.');
+      } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = 'Send';
+      }
+    });
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add('show');
+      setTimeout(() => {
+        errorMessage.classList.remove('show');
+      }, 5000);
+    }
+
+    function createNewTicket() {
+      ticketForm.style.display = 'block';
+      successMessage.classList.remove('show');
+      form.reset();
+      createdTicketNumber = null;
+    }
+
+    function viewTicketChat() {
+      if (createdTicketNumber) {
+        window.location.href = `/chat.html?ticket=${createdTicketNumber}`;
+      }
+    }
+  </script>
+</body>
+</html>

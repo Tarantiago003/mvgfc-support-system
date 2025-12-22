@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MVGFC - View My Ticket</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: #2D7A3E;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .lookup-section {
+      background: white;
+      padding: 40px;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .lookup-section h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .lookup-section p {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .lookup-form {
+      display: flex;
+      gap: 10px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .lookup-input {
+      flex: 1;
+      padding: 14px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    .lookup-input:focus {
+      outline: none;
+      border-color: #2D7A3E;
+    }
+
+    .lookup-button {
+      padding: 14px 30px;
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .lookup-button:hover {
+      background: #246830;
+    }
+
+    .chat-container {
+      display: none;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-container.show {
+      display: flex;
+    }
+
+    .ticket-header {
+      padding: 20px;
+      border-bottom: 2px solid #e0e0e0;
+      background: #fafafa;
+    }
+
+    .ticket-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .ticket-number {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2D7A3E;
+    }
+
+    .ticket-status {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-new { background: #e3f2fd; color: #1976d2; }
+    .status-open { background: #fff3e0; color: #f57c00; }
+    .status-ongoing { background: #e8f5e9; color: #2D7A3E; }
+    .status-resolved { background: #e0e0e0; color: #666; }
+    .status-on-hold { background: #ffecb3; color: #f57f17; }
+    .status-closed-today { background: #f5f5f5; color: #999; }
+
+    .ticket-subject {
+      color: #333;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .ticket-info {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+
+    .message {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message.customer {
+      align-items: flex-end;
+    }
+
+    .message.admin {
+      align-items: flex-start;
+    }
+
+    .message-bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .message.customer .message-bubble {
+      background: #2D7A3E;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.admin .message-bubble {
+      background: white;
+      color: #333;
+      border: 1px solid #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-sender {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      padding: 0 4px;
+    }
+
+    .message.customer .message-sender {
+      color: #2D7A3E;
+    }
+
+    .message.admin .message-sender {
+      color: #666;
+    }
+
+    .message-time {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    .input-area {
+      padding: 20px;
+      border-top: 2px solid #e0e0e0;
+      background: white;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 10px;
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      transition: border-color 0.3s;
+    }
+
+    .message-input:focus {
+      outline: none;
+      border-color: #2D7A3E;
+    }
+
+    .send-button {
+      padding: 12px 30px;
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .send-button:hover {
+      background: #246830;
+    }
+
+    .send-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: white;
+      color: #2D7A3E;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 2px solid #2D7A3E;
+      transition: all 0.3s;
+    }
+
+    .back-button:hover {
+      background: #2D7A3E;
+      color: white;
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    @media (max-width: 768px) {
+      .message-bubble {
+        max-width: 85%;
+      }
+
+      .lookup-form {
+        flex-direction: column;
+      }
+
+      .lookup-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-button">← Create New Ticket</a>
+
+    <div class="header">
+      <h1>"Message Us" (MU)</h1>
+      <p>Manuel V. Gallego Foundation Colleges</p>
+    </div>
+
+    <div class="lookup-section" id="lookupSection">
+      <h2>Enter Your Ticket Number</h2>
+      <p>To view your conversation and continue chatting with support</p>
+
+      <form class="lookup-form" id="lookupForm">
+        <input 
+          type="text" 
+          class="lookup-input" 
+          id="ticketNumberInput" 
+          placeholder="Enter ticket number (e.g., 05231)"
+          required
+          maxlength="10"
+        >
+        <button type="submit" class="lookup-button">View Ticket</button>
+      </form>
+
+      <div class="error-message" id="errorMessage"></div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+      <div class="ticket-header" id="ticketHeader">
+        <!-- Ticket info will be inserted here -->
+      </div>
+
+      <div class="messages-area" id="messagesArea">
+        <div class="empty-state">
+          <p>Loading messages...</p>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-container">
+          <textarea 
+            class="message-input" 
+            id="messageInput" 
+            placeholder="Type your message..."
+            rows="2"
+            maxlength="1000"
+          ></textarea>
+          <button class="send-button" id="sendButton">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTicket = null;
+    let currentTicketNumber = null;
+    let refreshInterval = null;
+
+    const lookupForm = document.getElementById('lookupForm');
+    const lookupSection = document.getElementById('lookupSection');
+    const chatContainer = document.getElementById('chatContainer');
+    const ticketNumberInput = document.getElementById('ticketNumberInput');
+    const errorMessage = document.getElementById('errorMessage');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const messagesArea = document.getElementById('messagesArea');
+    const ticketHeader = document.getElementById('ticketHeader');
+
+    // Check if ticket number is in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketFromUrl = urlParams.get('ticket');
+    if (ticketFromUrl) {
+      ticketNumberInput.value = ticketFromUrl;
+      lookupTicket(ticketFromUrl);
+    }
+
+    lookupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const ticketNumber = ticketNumberInput.value.trim().replace('#', '');
+      lookupTicket(ticketNumber);
+    });
+
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    async function lookupTicket(ticketNumber) {
+      errorMessage.classList.remove('show');
+
+      if (!ticketNumber) {
+        showError('Please enter a ticket number');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}`);
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicket = data.ticket;
+          currentTicketNumber = ticketNumber;
+          showChatInterface();
+          displayTicketInfo();
+          displayMessages();
+          
+          // Start auto-refresh every 3 seconds
+          if (refreshInterval) clearInterval(refreshInterval);
+          refreshInterval = setInterval(() => loadTicketUpdates(), 3000);
+        } else {
+          showError('Ticket not found. Please check your ticket number and try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Connection error. Please try again.');
+      }
+    }
+
+    function showChatInterface() {
+      lookupSection.style.display = 'none';
+      chatContainer.classList.add('show');
+    }
+
+    function displayTicketInfo() {
+      const statusClass = currentTicket.status.toLowerCase().replace(/ /g, '-');
+      ticketHeader.innerHTML = `
+        <div class="ticket-title">
+          <span class="ticket-number">#${currentTicket.ticketNumber}</span>
+          <span class="ticket-status status-${statusClass}">${currentTicket.status}</span>
+        </div>
+        <div class="ticket-subject">${escapeHtml(currentTicket.subject)}</div>
+        <div class="ticket-info">
+          Created: ${formatDate(currentTicket.createdAt)} 
+          ${currentTicket.assignedAgent ? `• Assigned to: ${currentTicket.assignedAgent}` : ''}
+        </div>
+      `;
+    }
+
+    function displayMessages() {
+      if (!currentTicket.messages || currentTicket.messages.length === 0) {
+        messagesArea.innerHTML = `
+          <div class="empty-state">
+            <p>No messages yet</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Filter out internal notes (customers shouldn't see them)
+      const visibleMessages = currentTicket.messages.filter(msg => !msg.isInternal);
+
+      messagesArea.innerHTML = visibleMessages.map(msg => {
+        const isCustomer = msg.sender === currentTicket.username;
+        return `
+          <div class="message ${isCustomer ? 'customer' : 'admin'}">
+            <div class="message-sender">${escapeHtml(msg.sender)}</div>
+            <div class="message-bubble">
+              ${escapeHtml(msg.message)}
+              <div class="message-time">${formatTime(msg.createdAt)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Auto-scroll to bottom
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    async function loadTicketUpdates() {
+      if (!currentTicketNumber) return;
+
+      try {
+        const response = await fetch(`/api/tickets/${currentTicketNumber}`);
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicket = data.ticket;
+          displayTicketInfo();
+          displayMessages();
+        }
+      } catch (error) {
+        console.error('Error refreshing ticket:', error);
+      }
+    }
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+
+      if (!message) return;
+
+      if (!currentTicket) {
+        showError('No ticket loaded');
+        return;
+      }
+
+      sendButton.disabled = true;
+      sendButton.textContent = 'Sending...';
+
+      try {
+        const response = await fetch(`/api/tickets/${currentTicketNumber}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: currentTicket.username,
+            message: message,
+            isInternal: false
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicket = data.ticket;
+          messageInput.value = '';
+          displayMessages();
+        } else {
+          showError('Failed to send message. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Connection error. Please try again.');
+      } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = 'Send';
+      }
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add('show');
+      setTimeout(() => {
+        errorMessage.classList.remove('show');
+      }, 5000);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(date) {
+      return new Date(date).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function formatTime(date) {
+      return new Date(date).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Cleanup interval on page unload
+    window.addEventListener('beforeunload', () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    });
+  </script>
+</body>
+</html>
