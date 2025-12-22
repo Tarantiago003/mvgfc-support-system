@@ -104,10 +104,10 @@ app.post('/api/tickets', async (req, res) => {
   try {
     const { username, email, subject, message } = req.body;
 
-    if (!username || !subject || !message) {
+    if (!subject || !message) {
       return res.status(400).json({
         success: false,
-        error: 'Username, subject, and message are required'
+        error: 'Subject, and message are required'
       });
     }
 
@@ -263,4 +263,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`💬 Customer Portal: http://localhost:${PORT}/`);
   console.log(`📊 Admin Dashboard: http://localhost:${PORT}/admin.html`);
+
 });
