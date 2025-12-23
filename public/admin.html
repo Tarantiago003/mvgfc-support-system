@@ -37,7 +37,7 @@
       gap: 20px;
     }
 
-    /*.notification-badge {
+    .notification-badge {
       position: relative;
       cursor: pointer;
     }
@@ -56,7 +56,7 @@
       justify-content: center;
       font-size: 11px;
       font-weight: bold;
-    }*/
+    }
 
     .profile {
       display: flex;
@@ -387,12 +387,12 @@
 </head>
 <body>
   <div class="header">
-    <h1>Aftersales MU Chats</h1>
+    <h1>ADMIN DASHBOARD</h1>
     <div class="header-right">
-      <!--<div class="notification-badge" onclick="filterByNew()">
+      <div class="notification-badge" onclick="filterByNew()">
         🔔
         <span id="notificationCount">0</span>
-      </div>-->
+      </div>
       <div class="profile">
         <div class="profile-icon">A</div>
         <span>Admin</span>
@@ -512,10 +512,19 @@
             <span class="ticket-number">#${ticket.ticketNumber}</span>
             <span class="ticket-status status-${ticket.status.toLowerCase().replace(/ /g, '-')}">${ticket.status}</span>
           </div>
-          <div class="ticket-user">${escapeHtml(ticket.username)}</div>
+          <div class="ticket-user">${getCategoryIcon(ticket.category)} ${escapeHtml(ticket.username)}</div>
           <div class="ticket-subject">${escapeHtml(ticket.subject)}</div>
         </div>
       `).join('');
+    }
+
+    function getCategoryIcon(category) {
+      const icons = {
+        'Question': '❓',
+        'Complaint': '⚠️',
+        'Feedback': '💡'
+      };
+      return icons[category] || '📋';
     }
 
     async function selectTicket(ticketNumber) {
@@ -583,13 +592,17 @@
       ticketDetailHeader.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: start;">
           <div>
-            <h2>Ticket #${currentTicket.ticketNumber}</h2>
+            <h2>${getCategoryIcon(currentTicket.category)} Ticket #${currentTicket.ticketNumber}</h2>
             <p style="color: #666; margin-top: 5px;">${escapeHtml(currentTicket.subject)}</p>
           </div>
           <span class="ticket-status status-${statusClass}">${currentTicket.status}</span>
         </div>
         
         <div class="ticket-info">
+          <div class="info-item">
+            <span class="info-label">Category:</span>
+            ${currentTicket.category}
+          </div>
           <div class="info-item">
             <span class="info-label">User:</span>
             ${escapeHtml(currentTicket.username)}
