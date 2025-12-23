@@ -37,27 +37,6 @@
       gap: 20px;
     }
 
-    .notification-badge {
-      position: relative;
-      cursor: pointer;
-    }
-
-    .notification-badge span {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #e74c3c;
-      color: white;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: bold;
-    }
-
     .profile {
       display: flex;
       align-items: center;
@@ -244,6 +223,16 @@
       background: #f0f2f5;
     }
 
+    button.danger {
+      background: #e74c3c;
+      color: white;
+      border: none;
+    }
+
+    button.danger:hover {
+      background: #c0392b;
+    }
+
     .ticket-info {
       display: flex;
       gap: 30px;
@@ -387,12 +376,8 @@
 </head>
 <body>
   <div class="header">
-    <h1>After Sales MU Chat</h1>
+    <h1>Aftersales MU Chat</h1>
     <div class="header-right">
-      <div class="notification-badge" onclick="filterByNew()">
-        🔔
-        <span id="notificationCount">0</span>
-      </div>
       <div class="profile">
         <div class="profile-icon">A</div>
         <span>Admin</span>
@@ -446,7 +431,6 @@
     // Load tickets on page load
     loadTickets();
     setInterval(loadTickets, 5000); // Auto-refresh every 5 seconds
-    setInterval(loadNotifications, 10000); // Check notifications every 10 seconds
 
     async function loadTickets() {
       try {
@@ -640,6 +624,7 @@
           </select>
 
           <button onclick="closeTicket('${currentTicket.ticketNumber}')">Close Ticket</button>
+          <button class="danger" onclick="deleteTicket('${currentTicket.ticketNumber}')">Delete Ticket</button>
         </div>
       `;
     }
@@ -765,6 +750,41 @@
       }
     }
 
+    async function deleteTicket(ticketNumber) {
+      if (!confirm('⚠️ Are you sure you want to DELETE this ticket permanently? This action cannot be undone!')) return;
+
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Clear current ticket view
+          const mainContent = document.getElementById('mainContent');
+          mainContent.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">💬</div>
+              <h3>Select a ticket to view details</h3>
+            </div>
+          `;
+          currentTicket = null;
+          currentTicketNumber = null;
+          
+          // Reload ticket list
+          loadTickets();
+          alert('✅ Ticket deleted successfully');
+        } else {
+          alert('❌ Failed to delete ticket: ' + (data.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error deleting ticket:', error);
+        alert('❌ Error deleting ticket. Please try again.');
+      }
+    }
+
     function filterTickets(status) {
       currentFilter = status;
       const filtered = tickets.filter(t => t.status === status);
@@ -802,4 +822,3 @@
   </script>
 </body>
 </html>
-
