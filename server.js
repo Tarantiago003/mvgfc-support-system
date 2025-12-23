@@ -11,10 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mvgfc_support';
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(MONGODB_URI)
 .then(() => console.log('✅ Connected to MongoDB'))
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
@@ -29,6 +26,11 @@ const messageSchema = new mongoose.Schema({
 
 const ticketSchema = new mongoose.Schema({
   ticketNumber: { type: String, unique: true, required: true },
+  category: { 
+    type: String, 
+    enum: ['Question', 'Complaint', 'Feedback'],
+    required: true 
+  },
   username: { type: String, required: true },
   email: { type: String },
   subject: { type: String, required: true },
@@ -102,12 +104,12 @@ app.get('/api/tickets/:ticketNumber', async (req, res) => {
 // Create new ticket (Customer submits)
 app.post('/api/tickets', async (req, res) => {
   try {
-    const { username, email, subject, message } = req.body;
+    const { category, username, email, subject, message } = req.body;
 
-    if (!subject || !message) {
+    if (!category || !subject || !message) {
       return res.status(400).json({
         success: false,
-        error: 'Subject, and message are required'
+        error: 'Category, subject, and message are required'
       });
     }
 
@@ -115,12 +117,13 @@ app.post('/api/tickets', async (req, res) => {
 
     const ticket = new Ticket({
       ticketNumber,
-      username,
+      category,
+      username: username || 'Anonymous',
       email: email || '',
       subject,
       status: 'New',
       messages: [{
-        sender: username,
+        sender: username || 'Anonymous',
         message,
         isInternal: false
       }]
@@ -263,5 +266,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`💬 Customer Portal: http://localhost:${PORT}/`);
   console.log(`📊 Admin Dashboard: http://localhost:${PORT}/admin.html`);
-
 });
