@@ -261,6 +261,29 @@ app.get('/api/notifications', async (req, res) => {
   }
 });
 
+// Delete ticket (Admin only)
+app.delete('/api/tickets/:ticketNumber', async (req, res) => {
+  try {
+    const ticket = await Ticket.findOneAndDelete({ 
+      ticketNumber: req.params.ticketNumber 
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Ticket not found' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Ticket deleted successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
