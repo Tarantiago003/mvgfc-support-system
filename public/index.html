@@ -219,7 +219,7 @@
   <div class="container">
     <div class="header">
       <h1>Message Us!</h1>
-      <p>Manuel V. Gallego Foundation Colleges Inc.</p>
+      <p>Manuel V. Gallego Foundation Colleges</p>
       <a href="/chat.html">Already have a ticket? Click here to chat</a>
     </div>
 
@@ -231,11 +231,25 @@
 
         <form id="supportForm">
           <div class="form-group">
-            <label for="name">Name</label>
+            <label for="category">Category *</label>
+            <select 
+              id="category" 
+              required
+              style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; background: white;"
+            >
+              <option value="">Select a category</option>
+              <option value="Question">Question</option>
+              <option value="Complaint">Complaint</option>
+              <option value="Feedback">Feedback</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="name">Your Name (Optional)</label>
             <input 
               type="text" 
               id="name" 
-              placeholder="Enter your name (Optional)"
+              placeholder="Enter your name (optional)"
               maxlength="100"
             >
           </div>
@@ -315,12 +329,13 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const name = document.getElementById('name').value.trim();
+      const category = document.getElementById('category').value.trim();
+      const name = document.getElementById('name').value.trim() || 'Anonymous';
       const email = document.getElementById('email').value.trim();
       const subject = document.getElementById('subject').value.trim();
       const message = document.getElementById('message').value.trim();
 
-      if (!subject || !message) {
+      if (!category || !subject || !message) {
         showError('Please fill in all required fields.');
         return;
       }
@@ -336,6 +351,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
+            category: category,
             username: name,
             email: email,
             subject: subject,
@@ -385,7 +401,4 @@
     }
   </script>
 </body>
-
 </html>
-
-
