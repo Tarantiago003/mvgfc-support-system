@@ -294,6 +294,53 @@
       margin-top: 5px;
     }
 
+    /* Typing Indicator */
+    .typing-indicator {
+      display: none;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      max-width: 70px;
+      margin-bottom: 12px;
+    }
+
+    .typing-indicator.show {
+      display: block;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #999;
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingAnimation {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
     .chat-input-area {
       padding: 20px 30px;
       border-top: 1px solid #e0e0e0;
@@ -408,7 +455,7 @@
 
       <div class="tickets-list" id="ticketsList">
         <div class="empty-state">
-          <div class="empty-state-icon">📭</div>
+          <div class="empty-state-icon">🔭</div>
           <p>No tickets yet</p>
         </div>
       </div>
@@ -427,6 +474,8 @@
     let currentTicket = null;
     let currentFilter = null;
     let isInternalNote = false;
+    let typingTimeout = null;
+    let isCurrentlyTyping = false;
 
     // Load tickets on page load
     loadTickets();
@@ -444,12 +493,7 @@
           
           // Reload current ticket if open
           if (currentTicket) {
-            const updated = tickets.find(t => t.ticketNumber === currentTicket.ticketNumber);
-            if (updated) {
-              currentTicket = updated;
-              displayTicketInfo();
-              displayMessages();
-            }
+            await loadCurrentTicketWithTyping();
           }
         }
       } catch (error) {
@@ -457,15 +501,17 @@
       }
     }
 
-    async function loadNotifications() {
+    async function loadCurrentTicketWithTyping() {
       try {
-        const response = await fetch('/api/notifications');
+        const response = await fetch(`/api/tickets/${currentTicket.ticketNumber}`);
         const data = await response.json();
         if (data.success) {
-          document.getElementById('notificationCount').textContent = data.count;
+          currentTicket = data.ticket;
+          displayTicketInfo();
+          displayMessages(data.typing);
         }
       } catch (error) {
-        console.error('Error loading notifications:', error);
+        console.error('Error loading ticket:', error);
       }
     }
 
@@ -482,7 +528,7 @@
       if (ticketsToShow.length === 0) {
         ticketsList.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-icon">🔭</div>
             <p>No tickets found</p>
           </div>
         `;
@@ -518,7 +564,7 @@
 
         if (data.success) {
           currentTicket = data.ticket;
-          displayTicketDetail(data.ticket);
+          displayTicketDetail(data.ticket, data.typing);
           
           // Update active state in list
           document.querySelectorAll('.ticket-item').forEach(item => {
@@ -531,7 +577,7 @@
       }
     }
 
-    function displayTicketDetail(ticket) {
+    function displayTicketDetail(ticket, typingUser = null) {
       const mainContent = document.getElementById('mainContent');
       
       mainContent.innerHTML = `
@@ -563,7 +609,57 @@
 
       // Now populate the header and messages
       displayTicketInfo();
-      displayMessages();
+      displayMessages(typingUser);
+      
+      // Setup typing detection
+      const messageInput = document.getElementById('messageInput');
+      messageInput.addEventListener('input', handleTyping);
+      messageInput.addEventListener('blur', stopTyping);
+    }
+
+    function handleTyping() {
+      if (!currentTicket) return;
+
+      // Send typing status if not already typing
+      if (!isCurrentlyTyping) {
+        isCurrentlyTyping = true;
+        updateTypingStatus(true);
+      }
+
+      // Clear previous timeout
+      clearTimeout(typingTimeout);
+
+      // Stop typing after 3 seconds of inactivity
+      typingTimeout = setTimeout(() => {
+        stopTyping();
+      }, 3000);
+    }
+
+    function stopTyping() {
+      if (isCurrentlyTyping) {
+        isCurrentlyTyping = false;
+        updateTypingStatus(false);
+      }
+      clearTimeout(typingTimeout);
+    }
+
+    async function updateTypingStatus(isTyping) {
+      if (!currentTicket) return;
+
+      try {
+        await fetch(`/api/tickets/${currentTicket.ticketNumber}/typing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user: 'Admin',
+            isTyping: isTyping
+          })
+        });
+      } catch (error) {
+        console.error('Error updating typing status:', error);
+      }
     }
 
     function displayTicketInfo() {
@@ -629,19 +725,34 @@
       `;
     }
 
-    function displayMessages() {
+    function displayMessages(typingUser = null) {
       if (!currentTicket) return;
 
       const chatArea = document.getElementById('chatArea');
       if (!chatArea) return;
 
-      chatArea.innerHTML = currentTicket.messages.map(msg => `
+      let messagesHTML = currentTicket.messages.map(msg => `
         <div class="message-bubble ${msg.isInternal ? 'message-internal' : (msg.sender === currentTicket.username ? 'message-customer' : 'message-agent')}">
           <div class="message-sender">${escapeHtml(msg.sender)}${msg.isInternal ? ' (Internal Note)' : ''}</div>
           <div>${escapeHtml(msg.message)}</div>
           <div class="message-time">${formatTime(msg.createdAt)}</div>
         </div>
       `).join('');
+
+      // Add typing indicator if customer is typing
+      if (typingUser && typingUser === currentTicket.username) {
+        messagesHTML += `
+          <div class="typing-indicator show">
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      chatArea.innerHTML = messagesHTML;
 
       // Auto-scroll to bottom
       chatArea.scrollTop = chatArea.scrollHeight;
@@ -667,6 +778,9 @@
       const message = messageInput.value.trim();
 
       if (!message) return;
+
+      // Stop typing indicator
+      stopTyping();
 
       try {
         const response = await fetch(`/api/tickets/${ticketNumber}/messages`, {
@@ -771,7 +885,6 @@
             </div>
           `;
           currentTicket = null;
-          currentTicketNumber = null;
           
           // Reload ticket list
           loadTickets();
@@ -789,10 +902,6 @@
       currentFilter = status;
       const filtered = tickets.filter(t => t.status === status);
       displayTickets(filtered);
-    }
-
-    function filterByNew() {
-      filterTickets('New');
     }
 
     function escapeHtml(text) {
@@ -817,8 +926,10 @@
       });
     }
 
-    // Load notifications on page load
-    loadNotifications();
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopTyping();
+    });
   </script>
 </body>
 </html>
