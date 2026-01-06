@@ -364,7 +364,7 @@
 
     // Load tickets on page load
     loadTickets();
-    setInterval(loadTickets, 5000);
+    setInterval(loadTickets, 3000);
 
     async function loadTickets() {
       try {
@@ -493,10 +493,13 @@
       // Clear previous timeout
       clearTimeout(typingTimeout);
 
-      // Stop typing after 3 seconds of inactivity
+      // Keep sending typing status every 2 seconds while typing
+      updateTypingStatus(true);
+
+      // Stop typing after 5 seconds of inactivity
       typingTimeout = setTimeout(() => {
         stopTyping();
-      }, 3000);
+      }, 5000);
     }
 
     function stopTyping() {
@@ -511,6 +514,7 @@
       if (!currentTicket) return;
 
       try {
+        console.log(`Sub Admin typing status: ${isTyping} for ticket ${currentTicket.ticketNumber}`);
         await fetch(`/api/tickets/${currentTicket.ticketNumber}/typing`, {
           method: 'POST',
           headers: {
