@@ -420,7 +420,7 @@
 
       ticketsList.innerHTML = tickets.map(ticket => `
         <div class="ticket-item ${currentTicket && currentTicket.ticketNumber === ticket.ticketNumber ? 'active' : ''}" 
-             onclick="selectTicket('${ticket.ticketNumber}')">
+             onclick="selectTicket('${ticket.ticketNumber}', this)">
           <div class="ticket-header">
             <span class="ticket-number">#${ticket.ticketNumber}</span>
             <span class="ticket-status status-${ticket.status.toLowerCase().replace(/ /g, '-')}">${ticket.status}</span>
@@ -431,7 +431,7 @@
       `).join('');
     }
 
-    async function selectTicket(ticketNumber) {
+    async function selectTicket(ticketNumber, element) {
       try {
         const response = await fetch(`/api/tickets/${ticketNumber}`);
         const data = await response.json();
@@ -445,7 +445,9 @@
           document.querySelectorAll('.ticket-item').forEach(item => {
             item.classList.remove('active');
           });
-          event.currentTarget.classList.add('active');
+          if (element) {
+            element.classList.add('active');
+          }
         }
       } catch (error) {
         console.error('Error loading ticket:', error);
