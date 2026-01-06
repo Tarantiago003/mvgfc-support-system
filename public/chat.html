@@ -221,6 +221,55 @@
       padding: 0 4px;
     }
 
+    /* Typing Indicator Styles */
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px;
+      max-width: 70px;
+      margin-bottom: 16px;
+    }
+
+    .typing-indicator.show {
+      display: flex;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #999;
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingAnimation {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
     .input-area {
       padding: 20px;
       border-top: 2px solid #e0e0e0;
@@ -381,6 +430,8 @@
     let currentTicket = null;
     let currentTicketNumber = null;
     let refreshInterval = null;
+    let typingTimeout = null;
+    let isCurrentlyTyping = false;
 
     const lookupForm = document.getElementById('lookupForm');
     const lookupSection = document.getElementById('lookupSection');
@@ -414,6 +465,60 @@
       }
     });
 
+    // Typing indicator detection
+    messageInput.addEventListener('input', () => {
+      handleTyping();
+    });
+
+    messageInput.addEventListener('blur', () => {
+      stopTyping();
+    });
+
+    function handleTyping() {
+      if (!currentTicketNumber) return;
+
+      // Send typing status if not already typing
+      if (!isCurrentlyTyping) {
+        isCurrentlyTyping = true;
+        updateTypingStatus(true);
+      }
+
+      // Clear previous timeout
+      clearTimeout(typingTimeout);
+
+      // Stop typing after 3 seconds of inactivity
+      typingTimeout = setTimeout(() => {
+        stopTyping();
+      }, 3000);
+    }
+
+    function stopTyping() {
+      if (isCurrentlyTyping) {
+        isCurrentlyTyping = false;
+        updateTypingStatus(false);
+      }
+      clearTimeout(typingTimeout);
+    }
+
+    async function updateTypingStatus(isTyping) {
+      if (!currentTicketNumber || !currentTicket) return;
+
+      try {
+        await fetch(`/api/tickets/${currentTicketNumber}/typing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user: currentTicket.username,
+            isTyping: isTyping
+          })
+        });
+      } catch (error) {
+        console.error('Error updating typing status:', error);
+      }
+    }
+
     async function lookupTicket(ticketNumber) {
       errorMessage.classList.remove('show');
 
@@ -431,7 +536,7 @@
           currentTicketNumber = ticketNumber;
           showChatInterface();
           displayTicketInfo();
-          displayMessages();
+          displayMessages(data.typing);
           
           // Start auto-refresh every 3 seconds
           if (refreshInterval) clearInterval(refreshInterval);
@@ -465,7 +570,7 @@
       `;
     }
 
-    function displayMessages() {
+    function displayMessages(typingUser = null) {
       if (!currentTicket.messages || currentTicket.messages.length === 0) {
         messagesArea.innerHTML = `
           <div class="empty-state">
@@ -478,7 +583,7 @@
       // Filter out internal notes (customers shouldn't see them)
       const visibleMessages = currentTicket.messages.filter(msg => !msg.isInternal);
 
-      messagesArea.innerHTML = visibleMessages.map(msg => {
+      let messagesHTML = visibleMessages.map(msg => {
         const isCustomer = msg.sender === currentTicket.username;
         return `
           <div class="message ${isCustomer ? 'customer' : 'admin'}">
@@ -490,6 +595,21 @@
           </div>
         `;
       }).join('');
+
+      // Add typing indicator if someone else is typing
+      if (typingUser && typingUser !== currentTicket.username) {
+        messagesHTML += `
+          <div class="typing-indicator show">
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      messagesArea.innerHTML = messagesHTML;
 
       // Auto-scroll to bottom
       messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -505,7 +625,7 @@
         if (data.success) {
           currentTicket = data.ticket;
           displayTicketInfo();
-          displayMessages();
+          displayMessages(data.typing);
         }
       } catch (error) {
         console.error('Error refreshing ticket:', error);
@@ -521,6 +641,9 @@
         showError('No ticket loaded');
         return;
       }
+
+      // Stop typing indicator
+      stopTyping();
 
       sendButton.disabled = true;
       sendButton.textContent = 'Sending...';
@@ -589,6 +712,7 @@
     // Cleanup interval on page unload
     window.addEventListener('beforeunload', () => {
       if (refreshInterval) clearInterval(refreshInterval);
+      stopTyping();
     });
   </script>
 </body>
