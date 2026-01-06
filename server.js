@@ -47,6 +47,20 @@ const ticketSchema = new mongoose.Schema({
 
 const Ticket = mongoose.model('Ticket', ticketSchema);
 
+// ============ TYPING INDICATORS ============
+// Store typing status in memory (resets on server restart)
+const typingStatus = new Map();
+
+// Clean up old typing statuses every 10 seconds
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of typingStatus.entries()) {
+    if (now - value.timestamp > 10000) { // Remove after 10 seconds
+      typingStatus.delete(key);
+    }
+  }
+}, 10000);
+
 // Helper function to generate ticket number
 function generateTicketNumber() {
   const timestamp = Date.now();
@@ -55,6 +69,29 @@ function generateTicketNumber() {
 }
 
 // ============ API ROUTES ============
+
+// Update typing status - MUST BE BEFORE other parameterized routes
+app.post('/api/tickets/:ticketNumber/typing', async (req, res) => {
+  try {
+    const { user, isTyping } = req.body;
+    const typingKey = `ticket_${req.params.ticketNumber}`;
+
+    if (isTyping) {
+      typingStatus.set(typingKey, {
+        user: user,
+        timestamp: Date.now()
+      });
+      console.log(`✍️ ${user} is typing on ticket ${req.params.ticketNumber}`);
+    } else {
+      typingStatus.delete(typingKey);
+      console.log(`⏸️ ${user} stopped typing on ticket ${req.params.ticketNumber}`);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 // Get all tickets (Admin Dashboard)
 app.get('/api/tickets', async (req, res) => {
@@ -81,7 +118,7 @@ app.get('/api/tickets', async (req, res) => {
   }
 });
 
-// Get single ticket with messages
+// Get single ticket with messages and typing status
 app.get('/api/tickets/:ticketNumber', async (req, res) => {
   try {
     const ticket = await Ticket.findOne({ 
@@ -95,7 +132,18 @@ app.get('/api/tickets/:ticketNumber', async (req, res) => {
       });
     }
 
-    res.json({ success: true, ticket });
+    // Get typing status for this ticket
+    const typingKey = `ticket_${req.params.ticketNumber}`;
+    const typing = typingStatus.get(typingKey);
+    
+    // Check if typing status is recent (within last 10 seconds)
+    const isTyping = typing && (Date.now() - typing.timestamp < 10000);
+    
+    res.json({ 
+      success: true, 
+      ticket,
+      typing: isTyping ? typing.user : null
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -174,6 +222,10 @@ app.post('/api/tickets/:ticketNumber/messages', async (req, res) => {
 
     ticket.updatedAt = Date.now();
     await ticket.save();
+
+    // Clear typing status when message is sent
+    const typingKey = `ticket_${req.params.ticketNumber}`;
+    typingStatus.delete(typingKey);
 
     res.json({ success: true, ticket });
   } catch (error) {
@@ -274,6 +326,10 @@ app.delete('/api/tickets/:ticketNumber', async (req, res) => {
         error: 'Ticket not found' 
       });
     }
+
+    // Clear typing status
+    const typingKey = `ticket_${req.params.ticketNumber}`;
+    typingStatus.delete(typingKey);
 
     res.json({ 
       success: true, 
