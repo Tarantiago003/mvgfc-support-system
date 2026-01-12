@@ -37,6 +37,103 @@
       gap: 20px;
     }
 
+    .notification-icon {
+      position: relative;
+      cursor: pointer;
+      font-size: 24px;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background 0.3s;
+    }
+
+    .notification-icon:hover {
+      background: #f0f0f0;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: #e74c3c;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 30px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      width: 350px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .notification-dropdown.show {
+      display: block;
+    }
+
+    .notification-header {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: 600;
+      color: #2D7A3E;
+    }
+
+    .notification-item {
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .notification-item:hover {
+      background: #f8f9fa;
+    }
+
+    .notification-ticket {
+      font-weight: 600;
+      color: #2D7A3E;
+      font-size: 13px;
+    }
+
+    .notification-user {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .notification-message {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .notification-time {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .notification-empty {
+      padding: 30px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+
     .profile {
       display: flex;
       align-items: center;
@@ -199,6 +296,7 @@
       margin-bottom: 12px;
       font-size: 14px;
       line-height: 1.5;
+      white-space: pre-wrap;
     }
 
     .message-customer {
@@ -224,7 +322,6 @@
       margin-top: 5px;
     }
 
-    /* Typing Indicator */
     .typing-indicator {
       display: none;
       padding: 12px 16px;
@@ -280,15 +377,75 @@
     .input-container {
       display: flex;
       gap: 10px;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      position: relative;
     }
 
     .chat-input {
-      flex: 1;
-      padding: 12px;
+      width: 100%;
+      padding: 12px 40px 12px 12px;
       border: 2px solid #ddd;
       border-radius: 6px;
       font-size: 14px;
       font-family: inherit;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    .emoji-button {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-button:hover {
+      background: #f0f0f0;
+    }
+
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      bottom: 50px;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 320px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .emoji-picker.show {
+      display: block;
+    }
+
+    .emoji-picker-emoji {
+      display: inline-block;
+      font-size: 24px;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-picker-emoji:hover {
+      background: #f0f0f0;
     }
 
     .send-btn {
@@ -299,6 +456,7 @@
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .send-btn:hover {
@@ -324,10 +482,21 @@
   <div class="header">
     <h1>SAO Help Desk</h1>
     <div class="header-right">
+      <div class="notification-icon" id="notificationIcon">
+        🔔
+        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+      </div>
       <div class="profile">
         <div class="profile-icon">S</div>
         <span>Sub Admin</span>
       </div>
+    </div>
+  </div>
+
+  <div class="notification-dropdown" id="notificationDropdown">
+    <div class="notification-header">Recent Notifications</div>
+    <div id="notificationList">
+      <div class="notification-empty">No new notifications</div>
     </div>
   </div>
 
@@ -361,10 +530,106 @@
     let refreshInterval = null;
     let typingTimeout = null;
     let isCurrentlyTyping = false;
+    let notifications = [];
 
-    // Load tickets on page load
+    const emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','💪','🙏','✍️','💅','🤳','💃','🕺','👯','🧘','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','⭐','🌟','💫','✨','🔥','💥','💯','✅','❌','⚠️','📌','📍','🔔','🔕','💬','💭','🗨','👀','💡','💰','💸','📱','💻','⌨️','🖱','🖨','📷','📹','🎥','🎬','📺','📻','🎵','🎶','🎼','🎧','🎤','🎸','🎹','🎺','🎷','🥁','🎮','🕹','🎯','🎲','🎰','🎳'];
+
+    // Notification system
+    const notificationIcon = document.getElementById('notificationIcon');
+    const notificationBadge = document.getElementById('notificationBadge');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+
+    notificationIcon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notificationDropdown.classList.toggle('show');
+      loadNotifications();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notificationDropdown.contains(e.target) && e.target !== notificationIcon) {
+        notificationDropdown.classList.remove('show');
+      }
+    });
+
+    async function loadNotifications() {
+      try {
+        const response = await fetch('/api/notifications');
+        const data = await response.json();
+        
+        if (data.success) {
+          // Filter only Question category notifications
+          notifications = data.notifications.filter(n => {
+            const ticket = tickets.find(t => t.ticketNumber === n.ticketNumber);
+            return ticket && ticket.category === 'Question';
+          });
+          updateNotificationBadge(notifications.length);
+          displayNotifications();
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    }
+
+    function updateNotificationBadge(count) {
+      if (count > 0) {
+        notificationBadge.textContent = count > 99 ? '99+' : count;
+        notificationBadge.style.display = 'block';
+      } else {
+        notificationBadge.style.display = 'none';
+      }
+    }
+
+    function displayNotifications() {
+      const notificationList = document.getElementById('notificationList');
+      
+      if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="notification-empty">No new notifications</div>';
+        return;
+      }
+
+      notificationList.innerHTML = notifications.map(notif => `
+        <div class="notification-item" onclick="openTicketFromNotification('${notif.ticketNumber}')">
+          <div class="notification-ticket">#${notif.ticketNumber}</div>
+          <div class="notification-user">From: ${escapeHtml(notif.username)}</div>
+          <div class="notification-message">${escapeHtml(notif.message)}</div>
+          <div class="notification-time">${formatNotificationTime(notif.timestamp)}</div>
+        </div>
+      `).join('');
+    }
+
+    async function openTicketFromNotification(ticketNumber) {
+      notificationDropdown.classList.remove('show');
+      
+      try {
+        await fetch(`/api/notifications/${ticketNumber}`, {
+          method: 'DELETE'
+        });
+        loadNotifications();
+      } catch (error) {
+        console.error('Error clearing notification:', error);
+      }
+
+      await selectTicket(ticketNumber);
+    }
+
+    function formatNotificationTime(timestamp) {
+      const now = Date.now();
+      const diff = now - timestamp;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (minutes < 1) return 'Just now';
+      if (minutes < 60) return `${minutes}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return `${days}d ago`;
+    }
+
+    // Load tickets and notifications on page load
     loadTickets();
+    loadNotifications();
     setInterval(loadTickets, 3000);
+    setInterval(loadNotifications, 10000);
 
     async function loadTickets() {
       try {
@@ -372,12 +637,10 @@
         const data = await response.json();
 
         if (data.success) {
-          // Filter only "Question" category
-          tickets = data.tickets.filter(t => t.category === 'Question');
+          tickets = data.tickets.filter(t => t.category === 'Question' && !t.isArchived);
           updateStats();
           displayTickets();
           
-          // Reload current ticket if open
           if (currentTicket) {
             await loadCurrentTicketWithTyping();
           }
@@ -420,7 +683,7 @@
 
       ticketsList.innerHTML = tickets.map(ticket => `
         <div class="ticket-item ${currentTicket && currentTicket.ticketNumber === ticket.ticketNumber ? 'active' : ''}" 
-             onclick="selectTicket('${ticket.ticketNumber}', this)">
+             onclick="selectTicket('${ticket.ticketNumber}')">
           <div class="ticket-header">
             <span class="ticket-number">#${ticket.ticketNumber}</span>
             <span class="ticket-status status-${ticket.status.toLowerCase().replace(/ /g, '-')}">${ticket.status}</span>
@@ -431,7 +694,7 @@
       `).join('');
     }
 
-    async function selectTicket(ticketNumber, element) {
+    async function selectTicket(ticketNumber) {
       try {
         const response = await fetch(`/api/tickets/${ticketNumber}`);
         const data = await response.json();
@@ -441,13 +704,10 @@
           currentTicketNumber = ticketNumber;
           displayTicketDetail(data.typing);
           
-          // Update active state in list
           document.querySelectorAll('.ticket-item').forEach(item => {
             item.classList.remove('active');
           });
-          if (element) {
-            element.classList.add('active');
-          }
+          event.currentTarget?.classList.add('active');
         }
       } catch (error) {
         console.error('Error loading ticket:', error);
@@ -458,17 +718,15 @@
       const mainContent = document.getElementById('mainContent');
       
       mainContent.innerHTML = `
-        <div class="ticket-detail-header" id="ticketDetailHeader">
-          <!-- Header will be inserted -->
-        </div>
-
-        <div class="messages-area" id="messagesArea">
-          <!-- Messages will be inserted -->
-        </div>
-
+        <div class="ticket-detail-header" id="ticketDetailHeader"></div>
+        <div class="messages-area" id="messagesArea"></div>
         <div class="input-area">
           <div class="input-container">
-            <input type="text" class="chat-input" id="messageInput" placeholder="Type your response..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <div class="input-wrapper">
+              <textarea class="chat-input" id="messageInput" placeholder="Type your response... (Shift+Enter for new line)" rows="1"></textarea>
+              <button class="emoji-button" id="emojiButton">😊</button>
+              <div class="emoji-picker" id="emojiPicker"></div>
+            </div>
             <button class="send-btn" onclick="sendMessage()">Send</button>
           </div>
         </div>
@@ -476,29 +734,128 @@
 
       displayTicketInfo();
       displayMessages(typingUser);
+      setupEmojiPicker();
+      setupMessageInput();
+    }
 
-      // Setup typing detection
+    function setupEmojiPicker() {
+      const emojiButton = document.getElementById('emojiButton');
+      const emojiPicker = document.getElementById('emojiPicker');
       const messageInput = document.getElementById('messageInput');
-      messageInput.addEventListener('input', handleTyping);
+
+      emojis.forEach(emoji => {
+        const span = document.createElement('span');
+        span.className = 'emoji-picker-emoji';
+        span.textContent = emoji;
+        span.onclick = () => {
+          const cursorPos = messageInput.selectionStart;
+          const textBefore = messageInput.value.substring(0, cursorPos);
+          const textAfter = messageInput.value.substring(cursorPos);
+          messageInput.value = textBefore + emoji + textAfter;
+          messageInput.focus();
+          messageInput.selectionStart = messageInput.selectionEnd = cursorPos + emoji.length;
+          emojiPicker.classList.remove('show');
+        };
+        emojiPicker.appendChild(span);
+      });
+
+      emojiButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPicker.classList.toggle('show');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+          emojiPicker.classList.remove('show');
+        }
+      });
+    }
+
+    function setupMessageInput() {
+      const messageInput = document.getElementById('messageInput');
+      
+      messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        handleTyping();
+      });
+
+      messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
       messageInput.addEventListener('blur', stopTyping);
+    }
+
+    function displayTicketInfo() {
+      if (!currentTicket) return;
+      
+      const ticketDetailHeader = document.getElementById('ticketDetailHeader');
+      if (!ticketDetailHeader) return;
+
+      const statusClass = currentTicket.status.toLowerCase().replace(/ /g, '-');
+      ticketDetailHeader.innerHTML = `
+        <div class="ticket-title">
+          <span class="ticket-number-display">#${currentTicket.ticketNumber}</span>
+          <span class="ticket-status status-${statusClass}">${currentTicket.status}</span>
+        </div>
+        <div class="ticket-subject-display">❓ ${escapeHtml(currentTicket.subject)}</div>
+        ${currentTicket.subjectCategory ? `<p style="color: #999; font-size: 12px; margin-top: 3px;">Subject: ${escapeHtml(currentTicket.subjectCategory)}</p>` : ''}
+        <div class="ticket-info">
+          From: ${escapeHtml(currentTicket.username)} • 
+          Created: ${formatDate(currentTicket.createdAt)}
+        </div>
+      `;
+    }
+
+    function displayMessages(typingUser = null) {
+      if (!currentTicket) return;
+
+      const messagesArea = document.getElementById('messagesArea');
+      if (!messagesArea) return;
+
+      const visibleMessages = currentTicket.messages.filter(msg => !msg.isInternal);
+
+      let messagesHTML = visibleMessages.map(msg => {
+        const isCustomer = msg.sender === currentTicket.username;
+        return `
+          <div class="message-bubble ${isCustomer ? 'message-customer' : 'message-agent'}">
+            <div class="message-sender">${escapeHtml(msg.sender)}</div>
+            <div>${escapeHtml(msg.message)}</div>
+            <div class="message-time">${formatTime(msg.createdAt)}</div>
+          </div>
+        `;
+      }).join('');
+
+      if (typingUser && typingUser === currentTicket.username) {
+        messagesHTML += `
+          <div class="typing-indicator show">
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      messagesArea.innerHTML = messagesHTML;
+      messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
     function handleTyping() {
       if (!currentTicket) return;
 
-      // Send typing status if not already typing
       if (!isCurrentlyTyping) {
         isCurrentlyTyping = true;
         updateTypingStatus(true);
       }
 
-      // Clear previous timeout
       clearTimeout(typingTimeout);
 
-      // Keep sending typing status every 2 seconds while typing
-      updateTypingStatus(true);
-
-      // Stop typing after 5 seconds of inactivity
       typingTimeout = setTimeout(() => {
         stopTyping();
       }, 5000);
@@ -516,7 +873,6 @@
       if (!currentTicket) return;
 
       try {
-        console.log(`Sub Admin typing status: ${isTyping} for ticket ${currentTicket.ticketNumber}`);
         await fetch(`/api/tickets/${currentTicket.ticketNumber}/typing`, {
           method: 'POST',
           headers: {
@@ -532,70 +888,12 @@
       }
     }
 
-    function displayTicketInfo() {
-      if (!currentTicket) return;
-      
-      const ticketDetailHeader = document.getElementById('ticketDetailHeader');
-      if (!ticketDetailHeader) return;
-
-      const statusClass = currentTicket.status.toLowerCase().replace(/ /g, '-');
-      ticketDetailHeader.innerHTML = `
-        <div class="ticket-title">
-          <span class="ticket-number-display">#${currentTicket.ticketNumber}</span>
-          <span class="ticket-status status-${statusClass}">${currentTicket.status}</span>
-        </div>
-        <div class="ticket-subject-display">❓ ${escapeHtml(currentTicket.subject)}</div>
-        <div class="ticket-info">
-          From: ${escapeHtml(currentTicket.username)} • 
-          Created: ${formatDate(currentTicket.createdAt)}
-        </div>
-      `;
-    }
-
-    function displayMessages(typingUser = null) {
-      if (!currentTicket) return;
-
-      const messagesArea = document.getElementById('messagesArea');
-      if (!messagesArea) return;
-
-      // Filter out internal notes
-      const visibleMessages = currentTicket.messages.filter(msg => !msg.isInternal);
-
-      let messagesHTML = visibleMessages.map(msg => {
-        const isCustomer = msg.sender === currentTicket.username;
-        return `
-          <div class="message-bubble ${isCustomer ? 'message-customer' : 'message-agent'}">
-            <div class="message-sender">${escapeHtml(msg.sender)}</div>
-            <div>${escapeHtml(msg.message)}</div>
-            <div class="message-time">${formatTime(msg.createdAt)}</div>
-          </div>
-        `;
-      }).join('');
-
-      // Add typing indicator if customer is typing
-      if (typingUser && typingUser === currentTicket.username) {
-        messagesHTML += `
-          <div class="typing-indicator show">
-            <div class="typing-dots">
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
-            </div>
-          </div>
-        `;
-      }
-
-      messagesArea.innerHTML = messagesHTML;
-      messagesArea.scrollTop = messagesArea.scrollHeight;
-    }
-
     async function sendMessage() {
       const messageInput = document.getElementById('messageInput');
       const message = messageInput.value.trim();
 
       if (!message || !currentTicket) return;
 
-      // Stop typing indicator
       stopTyping();
 
       try {
@@ -613,6 +911,7 @@
 
         if (data.success) {
           messageInput.value = '';
+          messageInput.style.height = 'auto';
           currentTicket = data.ticket;
           displayMessages();
         }
@@ -643,7 +942,6 @@
       });
     }
 
-    // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
       stopTyping();
     });
