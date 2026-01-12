@@ -78,7 +78,7 @@
       font-weight: 500;
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 12px;
       border: 1px solid #ddd;
@@ -88,9 +88,14 @@
       transition: border-color 0.3s;
     }
 
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       outline: none;
       border-color: #2D7A3E;
+    }
+
+    select {
+      background: white;
+      cursor: pointer;
     }
 
     textarea {
@@ -232,16 +237,42 @@
         <form id="supportForm">
           <div class="form-group">
             <label for="category">Category *</label>
-            <select 
-              id="category" 
-              required
-              style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; background: white;"
-            >
+            <select id="category" required>
               <option value="">Select a category</option>
               <option value="Question">Question</option>
               <option value="Complaint">Complaint</option>
               <option value="Feedback">Feedback</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label for="subjectCategory">Subject *</label>
+            <select id="subjectCategory" required>
+              <option value="">Select a subject</option>
+              <option value="Library Services">Library Services</option>
+              <option value="Student Services">Student Services</option>
+              <option value="Scholarship">Scholarship</option>
+              <option value="Guidance">Guidance</option>
+              <option value="Academics">Academics</option>
+              <option value="Clinic">Clinic</option>
+              <option value="Laboratory Concerns">Laboratory Concerns</option>
+              <option value="Financial Concern">Financial Concern</option>
+              <option value="Registrar">Registrar</option>
+              <option value="General Inquiry">General Inquiry</option>
+              <option value="Feedback">Feedback</option>
+              <option value="Concern">Concern</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="otherSubjectGroup" style="display: none;">
+            <label for="otherSubject">Please specify your subject *</label>
+            <input 
+              type="text" 
+              id="otherSubject" 
+              placeholder="Enter your specific subject"
+              maxlength="200"
+            >
           </div>
 
           <div class="form-group">
@@ -265,7 +296,7 @@
           </div>
 
           <div class="form-group">
-            <label for="subject">Subject *</label>
+            <label for="subject">Brief Description *</label>
             <input 
               type="text" 
               id="subject" 
@@ -287,7 +318,7 @@
 
           <div class="attachment-section">
             <span class="attachment-icon">📎</span>
-            
+            Attachments coming soon
           </div>
 
           <button type="submit" class="send-button" id="sendButton">
@@ -324,18 +355,44 @@
     const successMessage = document.getElementById('successMessage');
     const ticketNumberDisplay = document.getElementById('ticketNumberDisplay');
     const errorMessage = document.getElementById('errorMessage');
+    const subjectCategorySelect = document.getElementById('subjectCategory');
+    const otherSubjectGroup = document.getElementById('otherSubjectGroup');
+    const otherSubjectInput = document.getElementById('otherSubject');
     let createdTicketNumber = null;
+
+    // Show/hide "Other" field based on selection
+    subjectCategorySelect.addEventListener('change', function() {
+      if (this.value === 'Other') {
+        otherSubjectGroup.style.display = 'block';
+        otherSubjectInput.required = true;
+      } else {
+        otherSubjectGroup.style.display = 'none';
+        otherSubjectInput.required = false;
+        otherSubjectInput.value = '';
+      }
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const category = document.getElementById('category').value.trim();
+      let subjectCategory = document.getElementById('subjectCategory').value.trim();
       const name = document.getElementById('name').value.trim() || 'Anonymous';
       const email = document.getElementById('email').value.trim();
       const subject = document.getElementById('subject').value.trim();
       const message = document.getElementById('message').value.trim();
 
-      if (!category || !subject || !message) {
+      // If "Other" is selected, use the custom subject
+      if (subjectCategory === 'Other') {
+        const otherSubject = document.getElementById('otherSubject').value.trim();
+        if (!otherSubject) {
+          showError('Please specify your subject when selecting "Other".');
+          return;
+        }
+        subjectCategory = otherSubject;
+      }
+
+      if (!category || !subjectCategory || !subject || !message) {
         showError('Please fill in all required fields.');
         return;
       }
@@ -352,6 +409,7 @@
           },
           body: JSON.stringify({
             category: category,
+            subjectCategory: subjectCategory,
             username: name,
             email: email,
             subject: subject,
@@ -402,4 +460,3 @@
   </script>
 </body>
 </html>
-
