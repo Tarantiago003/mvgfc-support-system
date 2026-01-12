@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const { google } = require('googleapis');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -34,6 +35,7 @@ const ticketSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String },
   subject: { type: String, required: true },
+  subjectCategory: { type: String }, // New field for dropdown subject
   status: { 
     type: String, 
     enum: ['New', 'Open', 'On Hold', 'Ongoing', 'Resolved', 'Closed Today'],
@@ -41,25 +43,100 @@ const ticketSchema = new mongoose.Schema({
   },
   assignedAgent: { type: String },
   messages: [messageSchema],
+  isArchived: { type: Boolean, default: false },
+  archivedAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
 const Ticket = mongoose.model('Ticket', ticketSchema);
 
+// ============ GOOGLE SHEETS INTEGRATION ============
+
+// Google Sheets configuration
+// To use this, you need to:
+// 1. Create a Google Cloud Project
+// 2. Enable Google Sheets API
+// 3. Create a Service Account and download credentials JSON
+// 4. Share your Google Sheet with the service account email
+// 5. Set environment variable GOOGLE_SHEETS_CREDENTIALS with the JSON content
+// 6. Set environment variable GOOGLE_SHEET_ID with your sheet ID
+
+async function logToGoogleSheet(ticketData) {
+  try {
+    // Check if credentials are configured
+    if (!process.env.GOOGLE_SHEETS_CREDENTIALS || !process.env.GOOGLE_SHEET_ID) {
+      console.log('⚠️ Google Sheets not configured. Skipping sheet logging.');
+      return;
+    }
+
+    const credentials = JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS);
+    const auth = new google.auth.GoogleAuth({
+      credentials: credentials,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+
+    // Format: [Ticket Number, Subject, Category, Date Created, Status]
+    const values = [[
+      ticketData.ticketNumber,
+      ticketData.subject,
+      ticketData.category,
+      new Date(ticketData.createdAt).toLocaleString(),
+      ticketData.status
+    ]];
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Sheet1!A:E', // Adjust range as needed
+      valueInputOption: 'USER_ENTERED',
+      resource: { values },
+    });
+
+    console.log('✅ Logged to Google Sheets:', ticketData.ticketNumber);
+  } catch (error) {
+    console.error('❌ Error logging to Google Sheets:', error.message);
+  }
+}
+
 // ============ TYPING INDICATORS ============
-// Store typing status in memory (resets on server restart)
 const typingStatus = new Map();
 
-// Clean up old typing statuses every 10 seconds
 setInterval(() => {
   const now = Date.now();
   for (const [key, value] of typingStatus.entries()) {
-    if (now - value.timestamp > 10000) { // Remove after 10 seconds
+    if (now - value.timestamp > 10000) {
       typingStatus.delete(key);
     }
   }
 }, 10000);
+
+// ============ NOTIFICATION SYSTEM ============
+const notifications = new Map(); // Map of admin -> array of notifications
+
+function addNotification(ticketNumber, username, message) {
+  const notification = {
+    ticketNumber,
+    username,
+    message: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
+    timestamp: Date.now()
+  };
+  
+  // Add to notifications (using 'admin' as key, but you can make this per-user)
+  if (!notifications.has('admin')) {
+    notifications.set('admin', []);
+  }
+  
+  const adminNotifs = notifications.get('admin');
+  adminNotifs.unshift(notification);
+  
+  // Keep only last 50 notifications
+  if (adminNotifs.length > 50) {
+    adminNotifs.pop();
+  }
+}
 
 // Helper function to generate ticket number
 function generateTicketNumber() {
@@ -70,7 +147,37 @@ function generateTicketNumber() {
 
 // ============ API ROUTES ============
 
-// Update typing status - MUST BE BEFORE other parameterized routes
+// Get notifications
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const adminNotifs = notifications.get('admin') || [];
+    const newTicketsCount = await Ticket.countDocuments({ status: 'New' });
+    
+    res.json({ 
+      success: true, 
+      notifications: adminNotifs,
+      count: adminNotifs.length,
+      newTicketsCount 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Clear notifications for a specific ticket
+app.delete('/api/notifications/:ticketNumber', async (req, res) => {
+  try {
+    const adminNotifs = notifications.get('admin') || [];
+    const filtered = adminNotifs.filter(n => n.ticketNumber !== req.params.ticketNumber);
+    notifications.set('admin', filtered);
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update typing status
 app.post('/api/tickets/:ticketNumber/typing', async (req, res) => {
   try {
     const { user, isTyping } = req.body;
@@ -81,10 +188,8 @@ app.post('/api/tickets/:ticketNumber/typing', async (req, res) => {
         user: user,
         timestamp: Date.now()
       });
-      console.log(`✍️ ${user} is typing on ticket ${req.params.ticketNumber}`);
     } else {
       typingStatus.delete(typingKey);
-      console.log(`⏸️ ${user} stopped typing on ticket ${req.params.ticketNumber}`);
     }
 
     res.json({ success: true });
@@ -93,14 +198,16 @@ app.post('/api/tickets/:ticketNumber/typing', async (req, res) => {
   }
 });
 
-// Get all tickets (Admin Dashboard)
+// Get all tickets (Admin Dashboard) - exclude archived by default
 app.get('/api/tickets', async (req, res) => {
   try {
-    const tickets = await Ticket.find()
+    const showArchived = req.query.archived === 'true';
+    const query = showArchived ? { isArchived: true } : { isArchived: { $ne: true } };
+    
+    const tickets = await Ticket.find(query)
       .sort({ updatedAt: -1 })
       .lean();
     
-    // Count tickets by status
     const stats = {
       open: tickets.filter(t => t.status === 'Open').length,
       new: tickets.filter(t => t.status === 'New').length,
@@ -132,11 +239,8 @@ app.get('/api/tickets/:ticketNumber', async (req, res) => {
       });
     }
 
-    // Get typing status for this ticket
     const typingKey = `ticket_${req.params.ticketNumber}`;
     const typing = typingStatus.get(typingKey);
-    
-    // Check if typing status is recent (within last 10 seconds)
     const isTyping = typing && (Date.now() - typing.timestamp < 10000);
     
     res.json({ 
@@ -152,7 +256,7 @@ app.get('/api/tickets/:ticketNumber', async (req, res) => {
 // Create new ticket (Customer submits)
 app.post('/api/tickets', async (req, res) => {
   try {
-    const { category, username, email, subject, message } = req.body;
+    const { category, username, email, subject, subjectCategory, message } = req.body;
 
     if (!category || !subject || !message) {
       return res.status(400).json({
@@ -169,6 +273,7 @@ app.post('/api/tickets', async (req, res) => {
       username: username || 'Anonymous',
       email: email || '',
       subject,
+      subjectCategory: subjectCategory || '',
       status: 'New',
       messages: [{
         sender: username || 'Anonymous',
@@ -178,6 +283,18 @@ app.post('/api/tickets', async (req, res) => {
     });
 
     await ticket.save();
+
+    // Log to Google Sheets
+    await logToGoogleSheet({
+      ticketNumber: ticket.ticketNumber,
+      subject: ticket.subject,
+      category: ticket.category,
+      createdAt: ticket.createdAt,
+      status: ticket.status
+    });
+
+    // Add notification
+    addNotification(ticketNumber, username || 'Anonymous', message);
 
     res.json({ 
       success: true, 
@@ -223,9 +340,13 @@ app.post('/api/tickets/:ticketNumber/messages', async (req, res) => {
     ticket.updatedAt = Date.now();
     await ticket.save();
 
-    // Clear typing status when message is sent
     const typingKey = `ticket_${req.params.ticketNumber}`;
     typingStatus.delete(typingKey);
+
+    // Add notification if message is from customer
+    if (sender !== 'Admin' && sender !== 'Sub Admin' && !isInternal) {
+      addNotification(req.params.ticketNumber, sender, message);
+    }
 
     res.json({ success: true, ticket });
   } catch (error) {
@@ -303,17 +424,77 @@ app.patch('/api/tickets/:ticketNumber/close', async (req, res) => {
   }
 });
 
-// Get notification count (new tickets)
-app.get('/api/notifications', async (req, res) => {
+// Archive ticket (Admin only) - NEW
+app.patch('/api/tickets/:ticketNumber/archive', async (req, res) => {
   try {
-    const newTicketsCount = await Ticket.countDocuments({ status: 'New' });
-    res.json({ success: true, count: newTicketsCount });
+    const ticket = await Ticket.findOneAndUpdate(
+      { ticketNumber: req.params.ticketNumber },
+      { 
+        isArchived: true, 
+        archivedAt: Date.now(),
+        updatedAt: Date.now() 
+      },
+      { new: true }
+    );
+
+    if (!ticket) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Ticket not found' 
+      });
+    }
+
+    const typingKey = `ticket_${req.params.ticketNumber}`;
+    typingStatus.delete(typingKey);
+
+    res.json({ 
+      success: true, 
+      ticket,
+      message: 'Ticket archived successfully' 
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Delete ticket (Admin only)
+// Download ticket as CSV - NEW
+app.get('/api/tickets/:ticketNumber/download', async (req, res) => {
+  try {
+    const ticket = await Ticket.findOne({ 
+      ticketNumber: req.params.ticketNumber 
+    }).lean();
+
+    if (!ticket) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Ticket not found' 
+      });
+    }
+
+    // Create CSV content
+    let csv = 'Ticket Number,Category,Subject,Username,Email,Status,Assigned Agent,Created At,Updated At\n';
+    csv += `"${ticket.ticketNumber}","${ticket.category}","${ticket.subject}","${ticket.username}","${ticket.email || ''}","${ticket.status}","${ticket.assignedAgent || ''}","${new Date(ticket.createdAt).toLocaleString()}","${new Date(ticket.updatedAt).toLocaleString()}"\n\n`;
+    
+    csv += 'Messages:\n';
+    csv += 'Timestamp,Sender,Message,Type\n';
+    
+    ticket.messages.forEach(msg => {
+      const msgText = msg.message.replace(/"/g, '""'); // Escape quotes
+      const msgType = msg.isInternal ? 'Internal Note' : 'Public';
+      csv += `"${new Date(msg.createdAt).toLocaleString()}","${msg.sender}","${msgText}","${msgType}"\n`;
+    });
+
+    const filename = `ticket-${ticket.ticketNumber}-${Date.now()}.csv`;
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete ticket (Admin only) - Keep for permanent deletion
 app.delete('/api/tickets/:ticketNumber', async (req, res) => {
   try {
     const ticket = await Ticket.findOneAndDelete({ 
@@ -327,7 +508,6 @@ app.delete('/api/tickets/:ticketNumber', async (req, res) => {
       });
     }
 
-    // Clear typing status
     const typingKey = `ticket_${req.params.ticketNumber}`;
     typingStatus.delete(typingKey);
 
@@ -345,4 +525,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`💬 Customer Portal: http://localhost:${PORT}/`);
   console.log(`📊 Admin Dashboard: http://localhost:${PORT}/admin.html`);
+  console.log(`❓ Sub Admin (Questions): http://localhost:${PORT}/subadmin.html`);
 });
