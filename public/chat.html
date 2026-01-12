@@ -184,6 +184,7 @@
       font-size: 14px;
       line-height: 1.5;
       word-wrap: break-word;
+      white-space: pre-wrap;
     }
 
     .message.customer .message-bubble {
@@ -221,7 +222,6 @@
       padding: 0 4px;
     }
 
-    /* Typing Indicator Styles */
     .typing-indicator {
       display: none;
       align-items: center;
@@ -279,22 +279,81 @@
     .input-container {
       display: flex;
       gap: 10px;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    .message-input-wrapper {
+      flex: 1;
+      position: relative;
     }
 
     .message-input {
-      flex: 1;
-      padding: 12px;
+      width: 100%;
+      padding: 12px 40px 12px 12px;
       border: 2px solid #ddd;
       border-radius: 6px;
       font-size: 14px;
       font-family: inherit;
       resize: none;
       transition: border-color 0.3s;
+      min-height: 44px;
+      max-height: 120px;
     }
 
     .message-input:focus {
       outline: none;
       border-color: #2D7A3E;
+    }
+
+    .emoji-button {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-button:hover {
+      background: #f0f0f0;
+    }
+
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      bottom: 50px;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 320px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .emoji-picker.show {
+      display: block;
+    }
+
+    .emoji-picker-emoji {
+      display: inline-block;
+      font-size: 24px;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-picker-emoji:hover {
+      background: #f0f0f0;
     }
 
     .send-button {
@@ -307,6 +366,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.3s;
+      white-space: nowrap;
     }
 
     .send-button:hover {
@@ -369,6 +429,10 @@
       .lookup-button {
         width: 100%;
       }
+
+      .emoji-picker {
+        max-width: 280px;
+      }
     }
   </style>
 </head>
@@ -401,10 +465,7 @@
     </div>
 
     <div class="chat-container" id="chatContainer">
-      <div class="ticket-header" id="ticketHeader">
-        <!-- Ticket info will be inserted here -->
-      </div>
-
+      <div class="ticket-header" id="ticketHeader"></div>
       <div class="messages-area" id="messagesArea">
         <div class="empty-state">
           <p>Loading messages...</p>
@@ -413,13 +474,17 @@
 
       <div class="input-area">
         <div class="input-container">
-          <textarea 
-            class="message-input" 
-            id="messageInput" 
-            placeholder="Type your message..."
-            rows="2"
-            maxlength="1000"
-          ></textarea>
+          <div class="message-input-wrapper">
+            <textarea 
+              class="message-input" 
+              id="messageInput" 
+              placeholder="Type your message... (Shift+Enter for new line)"
+              rows="1"
+              maxlength="1000"
+            ></textarea>
+            <button class="emoji-button" id="emojiButton">😊</button>
+            <div class="emoji-picker" id="emojiPicker"></div>
+          </div>
           <button class="send-button" id="sendButton">Send</button>
         </div>
       </div>
@@ -442,6 +507,57 @@
     const sendButton = document.getElementById('sendButton');
     const messagesArea = document.getElementById('messagesArea');
     const ticketHeader = document.getElementById('ticketHeader');
+    const emojiButton = document.getElementById('emojiButton');
+    const emojiPicker = document.getElementById('emojiPicker');
+
+    // Emoji list
+    const emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','💪','🙏','✍️','💅','🤳','💃','🕺','👯','🧘','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','⭐','🌟','💫','✨','🔥','💥','💯','✅','❌','⚠️','📌','📍','🔔','🔕','💬','💭','🗨','👀','💡','💰','💸','📱','💻','⌨️','🖱','🖨','📷','📹','🎥','🎬','📺','📻','🎵','🎶','🎼','🎧','🎤','🎸','🎹','🎺','🎷','🥁','🎮','🕹','🎯','🎲','🎰','🎳','🏀','⚽','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🏒','🏑','🥍','🏏','🥅','⛳','🏹','🎣','🥊','🥋','🎽','🛹','🛼','🏆','🥇','🥈','🥉','🏅','🎖','📚','📖','📝','📄','📃','📑','📊','📈','📉','🗂','📅','📆','🗓','📇','📋','📁','📂','🗃','🗄','🔒','🔓','🔐','🔑','🗝','🔨','⚒','🛠','🗡','⚔️','🔫','🏹','🛡','🔧','🔩','⚙️','🗜','⚖️','🦯','🔗','⛓','🧰','🧲','⚗️','🧪','🧫','🧬','🔬','🔭','📡','💉','🩸','💊','🩹','🩺','🚪','🛏','🛋','🪑','🚽','🚿','🛁','🧴','🧷','🧹','🧺','🧻','🧼','🧽','🧯','🛒','🚬','⚰️','⚱️','🗿'];
+
+    // Populate emoji picker
+    emojis.forEach(emoji => {
+      const span = document.createElement('span');
+      span.className = 'emoji-picker-emoji';
+      span.textContent = emoji;
+      span.onclick = () => insertEmoji(emoji);
+      emojiPicker.appendChild(span);
+    });
+
+    // Toggle emoji picker
+    emojiButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      emojiPicker.classList.toggle('show');
+    });
+
+    // Close emoji picker when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+        emojiPicker.classList.remove('show');
+      }
+    });
+
+    function insertEmoji(emoji) {
+      const cursorPos = messageInput.selectionStart;
+      const textBefore = messageInput.value.substring(0, cursorPos);
+      const textAfter = messageInput.value.substring(cursorPos);
+      messageInput.value = textBefore + emoji + textAfter;
+      messageInput.focus();
+      messageInput.selectionStart = messageInput.selectionEnd = cursorPos + emoji.length;
+      emojiPicker.classList.remove('show');
+    }
+
+    // Auto-resize textarea
+    messageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Handle Shift+Enter for new line, Enter alone sends message
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
     // Check if ticket number is in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -458,35 +574,20 @@
     });
 
     sendButton.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
 
-    // Typing indicator detection
-    messageInput.addEventListener('input', () => {
-      handleTyping();
-    });
-
-    messageInput.addEventListener('blur', () => {
-      stopTyping();
-    });
+    messageInput.addEventListener('input', handleTyping);
+    messageInput.addEventListener('blur', stopTyping);
 
     function handleTyping() {
       if (!currentTicketNumber) return;
 
-      // Send typing status if not already typing
       if (!isCurrentlyTyping) {
         isCurrentlyTyping = true;
         updateTypingStatus(true);
       }
 
-      // Clear previous timeout
       clearTimeout(typingTimeout);
 
-      // Stop typing after 3 seconds of inactivity
       typingTimeout = setTimeout(() => {
         stopTyping();
       }, 3000);
@@ -538,7 +639,6 @@
           displayTicketInfo();
           displayMessages(data.typing);
           
-          // Start auto-refresh every 3 seconds
           if (refreshInterval) clearInterval(refreshInterval);
           refreshInterval = setInterval(() => loadTicketUpdates(), 3000);
         } else {
@@ -580,7 +680,6 @@
         return;
       }
 
-      // Filter out internal notes (customers shouldn't see them)
       const visibleMessages = currentTicket.messages.filter(msg => !msg.isInternal);
 
       let messagesHTML = visibleMessages.map(msg => {
@@ -596,7 +695,6 @@
         `;
       }).join('');
 
-      // Add typing indicator if someone else is typing
       if (typingUser && typingUser !== currentTicket.username) {
         messagesHTML += `
           <div class="typing-indicator show">
@@ -610,8 +708,6 @@
       }
 
       messagesArea.innerHTML = messagesHTML;
-
-      // Auto-scroll to bottom
       messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
@@ -642,7 +738,6 @@
         return;
       }
 
-      // Stop typing indicator
       stopTyping();
 
       sendButton.disabled = true;
@@ -666,6 +761,7 @@
         if (data.success) {
           currentTicket = data.ticket;
           messageInput.value = '';
+          messageInput.style.height = 'auto';
           displayMessages();
         } else {
           showError('Failed to send message. Please try again.');
@@ -709,7 +805,6 @@
       });
     }
 
-    // Cleanup interval on page unload
     window.addEventListener('beforeunload', () => {
       if (refreshInterval) clearInterval(refreshInterval);
       stopTyping();
