@@ -37,6 +37,103 @@
       gap: 20px;
     }
 
+    .notification-icon {
+      position: relative;
+      cursor: pointer;
+      font-size: 24px;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background 0.3s;
+    }
+
+    .notification-icon:hover {
+      background: #f0f0f0;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: #e74c3c;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 30px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      width: 350px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .notification-dropdown.show {
+      display: block;
+    }
+
+    .notification-header {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: 600;
+      color: #2D7A3E;
+    }
+
+    .notification-item {
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .notification-item:hover {
+      background: #f8f9fa;
+    }
+
+    .notification-ticket {
+      font-weight: 600;
+      color: #2D7A3E;
+      font-size: 13px;
+    }
+
+    .notification-user {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .notification-message {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .notification-time {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .notification-empty {
+      padding: 30px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+
     .profile {
       display: flex;
       align-items: center;
@@ -66,6 +163,8 @@
       background: white;
       border-right: 1px solid #e0e0e0;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
 
     .stats-bar {
@@ -107,9 +206,34 @@
       color: #2D7A3E;
     }
 
+    .view-toggle {
+      display: flex;
+      padding: 10px;
+      gap: 10px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+    }
+
+    .view-toggle button {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .view-toggle button.active {
+      background: #2D7A3E;
+      color: white;
+      border-color: #2D7A3E;
+    }
+
     .tickets-list {
+      flex: 1;
       overflow-y: auto;
-      height: calc(100vh - 185px);
     }
 
     .ticket-item {
@@ -187,6 +311,7 @@
       display: flex;
       gap: 10px;
       margin-top: 15px;
+      flex-wrap: wrap;
     }
 
     select, button {
@@ -223,6 +348,15 @@
       background: #f0f2f5;
     }
 
+    button.warning {
+      background: #f39c12;
+      color: white;
+    }
+
+    button.warning:hover {
+      background: #e67e22;
+    }
+
     button.danger {
       background: #e74c3c;
       color: white;
@@ -238,6 +372,7 @@
       gap: 30px;
       margin-top: 15px;
       font-size: 13px;
+      flex-wrap: wrap;
     }
 
     .info-item {
@@ -263,6 +398,7 @@
       margin-bottom: 12px;
       font-size: 14px;
       line-height: 1.5;
+      white-space: pre-wrap;
     }
 
     .message-customer {
@@ -294,7 +430,6 @@
       margin-top: 5px;
     }
 
-    /* Typing Indicator */
     .typing-indicator {
       display: none;
       padding: 12px 16px;
@@ -376,15 +511,75 @@
     .input-group {
       display: flex;
       gap: 10px;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      position: relative;
     }
 
     .chat-input {
-      flex: 1;
-      padding: 12px;
+      width: 100%;
+      padding: 12px 40px 12px 12px;
       border: 1px solid #ddd;
       border-radius: 4px;
       font-size: 14px;
       font-family: inherit;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    .emoji-button {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-button:hover {
+      background: #f0f0f0;
+    }
+
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      bottom: 50px;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 320px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .emoji-picker.show {
+      display: block;
+    }
+
+    .emoji-picker-emoji {
+      display: inline-block;
+      font-size: 24px;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-picker-emoji:hover {
+      background: #f0f0f0;
     }
 
     .send-btn {
@@ -395,6 +590,7 @@
       border-radius: 4px;
       font-weight: 600;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .empty-state {
@@ -418,6 +614,10 @@
       .main-content {
         display: none;
       }
+      .notification-dropdown {
+        right: 10px;
+        width: calc(100vw - 20px);
+      }
     }
   </style>
 </head>
@@ -425,10 +625,21 @@
   <div class="header">
     <h1>Aftersales MU Chat</h1>
     <div class="header-right">
+      <div class="notification-icon" id="notificationIcon">
+        🔔
+        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+      </div>
       <div class="profile">
         <div class="profile-icon">A</div>
         <span>Admin</span>
       </div>
+    </div>
+  </div>
+
+  <div class="notification-dropdown" id="notificationDropdown">
+    <div class="notification-header">Recent Notifications</div>
+    <div id="notificationList">
+      <div class="notification-empty">No new notifications</div>
     </div>
   </div>
 
@@ -451,6 +662,11 @@
           <div class="stat-label">CLOSED TODAY</div>
           <div class="stat-value" id="statClosed">0</div>
         </div>
+      </div>
+
+      <div class="view-toggle">
+        <button id="activeViewBtn" class="active" onclick="switchView('active')">Active Tickets</button>
+        <button id="archivedViewBtn" onclick="switchView('archived')">Archived</button>
       </div>
 
       <div class="tickets-list" id="ticketsList">
@@ -476,14 +692,117 @@
     let isInternalNote = false;
     let typingTimeout = null;
     let isCurrentlyTyping = false;
+    let currentView = 'active'; // 'active' or 'archived'
+    let notifications = [];
 
-    // Load tickets on page load
+    const emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','💪','🙏','✍️','💅','🤳','💃','🕺','👯','🧘','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','⭐','🌟','💫','✨','🔥','💥','💯','✅','❌','⚠️','📌','📍','🔔','🔕','💬','💭','🗨','👀','💡','💰','💸','📱','💻','⌨️','🖱','🖨','📷','📹','🎥','🎬','📺','📻','🎵','🎶','🎼','🎧','🎤','🎸','🎹','🎺','🎷','🥁','🎮','🕹','🎯','🎲','🎰','🎳'];
+
+    // Notification system
+    const notificationIcon = document.getElementById('notificationIcon');
+    const notificationBadge = document.getElementById('notificationBadge');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+
+    notificationIcon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notificationDropdown.classList.toggle('show');
+      loadNotifications();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notificationDropdown.contains(e.target) && e.target !== notificationIcon) {
+        notificationDropdown.classList.remove('show');
+      }
+    });
+
+    async function loadNotifications() {
+      try {
+        const response = await fetch('/api/notifications');
+        const data = await response.json();
+        
+        if (data.success) {
+          notifications = data.notifications;
+          updateNotificationBadge(data.count);
+          displayNotifications();
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    }
+
+    function updateNotificationBadge(count) {
+      if (count > 0) {
+        notificationBadge.textContent = count > 99 ? '99+' : count;
+        notificationBadge.style.display = 'block';
+      } else {
+        notificationBadge.style.display = 'none';
+      }
+    }
+
+    function displayNotifications() {
+      const notificationList = document.getElementById('notificationList');
+      
+      if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="notification-empty">No new notifications</div>';
+        return;
+      }
+
+      notificationList.innerHTML = notifications.map(notif => `
+        <div class="notification-item" onclick="openTicketFromNotification('${notif.ticketNumber}')">
+          <div class="notification-ticket">#${notif.ticketNumber}</div>
+          <div class="notification-user">From: ${escapeHtml(notif.username)}</div>
+          <div class="notification-message">${escapeHtml(notif.message)}</div>
+          <div class="notification-time">${formatNotificationTime(notif.timestamp)}</div>
+        </div>
+      `).join('');
+    }
+
+    async function openTicketFromNotification(ticketNumber) {
+      notificationDropdown.classList.remove('show');
+      
+      // Clear notification for this ticket
+      try {
+        await fetch(`/api/notifications/${ticketNumber}`, {
+          method: 'DELETE'
+        });
+        loadNotifications();
+      } catch (error) {
+        console.error('Error clearing notification:', error);
+      }
+
+      // Load and open the ticket
+      await selectTicket(ticketNumber);
+    }
+
+    function formatNotificationTime(timestamp) {
+      const now = Date.now();
+      const diff = now - timestamp;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (minutes < 1) return 'Just now';
+      if (minutes < 60) return `${minutes}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return `${days}d ago`;
+    }
+
+    // Load tickets and notifications on page load
     loadTickets();
-    setInterval(loadTickets, 5000); // Auto-refresh every 5 seconds
+    loadNotifications();
+    setInterval(loadTickets, 5000);
+    setInterval(loadNotifications, 10000);
+
+    function switchView(view) {
+      currentView = view;
+      document.getElementById('activeViewBtn').classList.toggle('active', view === 'active');
+      document.getElementById('archivedViewBtn').classList.toggle('active', view === 'archived');
+      loadTickets();
+    }
 
     async function loadTickets() {
       try {
-        const response = await fetch('/api/tickets');
+        const url = currentView === 'archived' ? '/api/tickets?archived=true' : '/api/tickets';
+        const response = await fetch(url);
         const data = await response.json();
 
         if (data.success) {
@@ -491,7 +810,6 @@
           updateStats(data.stats);
           displayTickets(tickets);
           
-          // Reload current ticket if open
           if (currentTicket) {
             await loadCurrentTicketWithTyping();
           }
@@ -526,10 +844,11 @@
       const ticketsList = document.getElementById('ticketsList');
       
       if (ticketsToShow.length === 0) {
+        const emptyMessage = currentView === 'archived' ? 'No archived tickets' : 'No tickets found';
         ticketsList.innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon">🔭</div>
-            <p>No tickets found</p>
+            <p>${emptyMessage}</p>
           </div>
         `;
         return;
@@ -566,11 +885,10 @@
           currentTicket = data.ticket;
           displayTicketDetail(data.ticket, data.typing);
           
-          // Update active state in list
           document.querySelectorAll('.ticket-item').forEach(item => {
             item.classList.remove('active');
           });
-          event.currentTarget.classList.add('active');
+          event.currentTarget?.classList.add('active');
         }
       } catch (error) {
         console.error('Error loading ticket:', error);
@@ -581,14 +899,8 @@
       const mainContent = document.getElementById('mainContent');
       
       mainContent.innerHTML = `
-        <div class="ticket-detail-header" id="ticketDetailHeader">
-          <!-- Header will be inserted by displayTicketInfo() -->
-        </div>
-
-        <div class="chat-area" id="chatArea">
-          <!-- Messages will be inserted by displayMessages() -->
-        </div>
-
+        <div class="ticket-detail-header" id="ticketDetailHeader"></div>
+        <div class="chat-area" id="chatArea"></div>
         <div class="chat-input-area" id="chatInputArea">
           <div class="chat-tabs">
             <div class="chat-tab ${!isInternalNote ? 'active' : ''}" onclick="setMessageType(false)">
@@ -601,335 +913,28 @@
             </div>
           </div>
           <div class="input-group">
-            <input type="text" class="chat-input" id="messageInput" placeholder="${isInternalNote ? 'Add internal note...' : 'Type your message...'}" onkeypress="if(event.key==='Enter') sendMessage('${ticket.ticketNumber}')">
+            <div class="input-wrapper">
+              <textarea class="chat-input" id="messageInput" placeholder="${isInternalNote ? 'Add internal note...' : 'Type your message... (Shift+Enter for new line)'}" rows="1"></textarea>
+              <button class="emoji-button" id="emojiButton">😊</button>
+              <div class="emoji-picker" id="emojiPicker"></div>
+            </div>
             <button class="send-btn" onclick="sendMessage('${ticket.ticketNumber}')">Send</button>
           </div>
         </div>
       `;
 
-      // Now populate the header and messages
       displayTicketInfo();
       displayMessages(typingUser);
-      
-      // Setup typing detection
+      setupEmojiPicker();
+      setupMessageInput();
+    }
+
+    function setupEmojiPicker() {
+      const emojiButton = document.getElementById('emojiButton');
+      const emojiPicker = document.getElementById('emojiPicker');
       const messageInput = document.getElementById('messageInput');
-      messageInput.addEventListener('input', handleTyping);
-      messageInput.addEventListener('blur', stopTyping);
-    }
 
-    function handleTyping() {
-      if (!currentTicket) return;
-
-      // Send typing status if not already typing
-      if (!isCurrentlyTyping) {
-        isCurrentlyTyping = true;
-        updateTypingStatus(true);
-      }
-
-      // Clear previous timeout
-      clearTimeout(typingTimeout);
-
-      // Stop typing after 3 seconds of inactivity
-      typingTimeout = setTimeout(() => {
-        stopTyping();
-      }, 3000);
-    }
-
-    function stopTyping() {
-      if (isCurrentlyTyping) {
-        isCurrentlyTyping = false;
-        updateTypingStatus(false);
-      }
-      clearTimeout(typingTimeout);
-    }
-
-    async function updateTypingStatus(isTyping) {
-      if (!currentTicket) return;
-
-      try {
-        await fetch(`/api/tickets/${currentTicket.ticketNumber}/typing`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            user: 'Admin',
-            isTyping: isTyping
-          })
-        });
-      } catch (error) {
-        console.error('Error updating typing status:', error);
-      }
-    }
-
-    function displayTicketInfo() {
-      if (!currentTicket) return;
-      
-      const ticketDetailHeader = document.getElementById('ticketDetailHeader');
-      if (!ticketDetailHeader) return;
-
-      const statusClass = currentTicket.status.toLowerCase().replace(/ /g, '-');
-      ticketDetailHeader.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: start;">
-          <div>
-            <h2>${getCategoryIcon(currentTicket.category)} Ticket #${currentTicket.ticketNumber}</h2>
-            <p style="color: #666; margin-top: 5px;">${escapeHtml(currentTicket.subject)}</p>
-          </div>
-          <span class="ticket-status status-${statusClass}">${currentTicket.status}</span>
-        </div>
-        
-        <div class="ticket-info">
-          <div class="info-item">
-            <span class="info-label">Category:</span>
-            ${currentTicket.category}
-          </div>
-          <div class="info-item">
-            <span class="info-label">User:</span>
-            ${escapeHtml(currentTicket.username)}
-          </div>
-          <div class="info-item">
-            <span class="info-label">Agent:</span>
-            ${currentTicket.assignedAgent || 'Unassigned'}
-          </div>
-          <div class="info-item">
-            <span class="info-label">Status:</span>
-            ${currentTicket.status}
-          </div>
-          <div class="info-item">
-            <span class="info-label">Created:</span>
-            ${formatDate(currentTicket.createdAt)}
-          </div>
-        </div>
-
-        <div class="ticket-controls">
-          <select id="assignAgent" onchange="assignAgent('${currentTicket.ticketNumber}', this.value)">
-            <option value="">Assign Agent</option>
-            <option value="Agent 1" ${currentTicket.assignedAgent === 'Agent 1' ? 'selected' : ''}>Agent 1</option>
-            <option value="Agent 2" ${currentTicket.assignedAgent === 'Agent 2' ? 'selected' : ''}>Agent 2</option>
-            <option value="Agent 3" ${currentTicket.assignedAgent === 'Agent 3' ? 'selected' : ''}>Agent 3</option>
-          </select>
-
-          <select id="changeStatus" onchange="changeStatus('${currentTicket.ticketNumber}', this.value)">
-            <option value="">Change Status</option>
-            <option value="New">New</option>
-            <option value="Open">Open</option>
-            <option value="Ongoing">Ongoing</option>
-            <option value="On Hold">On Hold</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed Today">Closed Today</option>
-          </select>
-
-          <button onclick="closeTicket('${currentTicket.ticketNumber}')">Close Ticket</button>
-          <button class="danger" onclick="deleteTicket('${currentTicket.ticketNumber}')">Delete Ticket</button>
-        </div>
-      `;
-    }
-
-    function displayMessages(typingUser = null) {
-      if (!currentTicket) return;
-
-      const chatArea = document.getElementById('chatArea');
-      if (!chatArea) return;
-
-      let messagesHTML = currentTicket.messages.map(msg => `
-        <div class="message-bubble ${msg.isInternal ? 'message-internal' : (msg.sender === currentTicket.username ? 'message-customer' : 'message-agent')}">
-          <div class="message-sender">${escapeHtml(msg.sender)}${msg.isInternal ? ' (Internal Note)' : ''}</div>
-          <div>${escapeHtml(msg.message)}</div>
-          <div class="message-time">${formatTime(msg.createdAt)}</div>
-        </div>
-      `).join('');
-
-      // Add typing indicator if customer is typing
-      if (typingUser && typingUser === currentTicket.username) {
-        messagesHTML += `
-          <div class="typing-indicator show">
-            <div class="typing-dots">
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
-            </div>
-          </div>
-        `;
-      }
-
-      chatArea.innerHTML = messagesHTML;
-
-      // Auto-scroll to bottom
-      chatArea.scrollTop = chatArea.scrollHeight;
-    }
-
-    function setMessageType(internal) {
-      isInternalNote = internal;
-      
-      // Update tabs
-      const tabs = document.querySelectorAll('.chat-tab');
-      tabs.forEach(tab => tab.classList.remove('active'));
-      tabs[internal ? 1 : 0].classList.add('active');
-      
-      // Update input placeholder
-      const messageInput = document.getElementById('messageInput');
-      if (messageInput) {
-        messageInput.placeholder = internal ? 'Add internal note...' : 'Type your message...';
-      }
-    }
-
-    async function sendMessage(ticketNumber) {
-      const messageInput = document.getElementById('messageInput');
-      const message = messageInput.value.trim();
-
-      if (!message) return;
-
-      // Stop typing indicator
-      stopTyping();
-
-      try {
-        const response = await fetch(`/api/tickets/${ticketNumber}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sender: 'Admin',
-            message: message,
-            isInternal: isInternalNote
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          messageInput.value = '';
-          currentTicket = data.ticket;
-          displayMessages();
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
-    }
-
-    async function changeStatus(ticketNumber, status) {
-      if (!status) return;
-
-      try {
-        const response = await fetch(`/api/tickets/${ticketNumber}/status`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          loadTickets();
-        }
-      } catch (error) {
-        console.error('Error changing status:', error);
-      }
-    }
-
-    async function assignAgent(ticketNumber, agent) {
-      if (!agent) return;
-
-      try {
-        const response = await fetch(`/api/tickets/${ticketNumber}/assign`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ agent })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          loadTickets();
-        }
-      } catch (error) {
-        console.error('Error assigning agent:', error);
-      }
-    }
-
-    async function closeTicket(ticketNumber) {
-      if (!confirm('Are you sure you want to close this ticket?')) return;
-
-      try {
-        const response = await fetch(`/api/tickets/${ticketNumber}/close`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          loadTickets();
-        }
-      } catch (error) {
-        console.error('Error closing ticket:', error);
-      }
-    }
-
-    async function deleteTicket(ticketNumber) {
-      if (!confirm('⚠️ Are you sure you want to DELETE this ticket permanently? This action cannot be undone!')) return;
-
-      try {
-        const response = await fetch(`/api/tickets/${ticketNumber}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          // Clear current ticket view
-          const mainContent = document.getElementById('mainContent');
-          mainContent.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">💬</div>
-              <h3>Select a ticket to view details</h3>
-            </div>
-          `;
-          currentTicket = null;
-          
-          // Reload ticket list
-          loadTickets();
-          alert('✅ Ticket deleted successfully');
-        } else {
-          alert('❌ Failed to delete ticket: ' + (data.error || 'Unknown error'));
-        }
-      } catch (error) {
-        console.error('Error deleting ticket:', error);
-        alert('❌ Error deleting ticket. Please try again.');
-      }
-    }
-
-    function filterTickets(status) {
-      currentFilter = status;
-      const filtered = tickets.filter(t => t.status === status);
-      displayTickets(filtered);
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function formatDate(date) {
-      return new Date(date).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    function formatTime(date) {
-      return new Date(date).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      stopTyping();
-    });
-  </script>
-</body>
-</html>
+      emojis.forEach(emoji => {
+        const span = document.createElement('span');
+        span.className = 'emoji-picker-emoji';
+        span.
