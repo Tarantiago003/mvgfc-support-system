@@ -692,12 +692,11 @@
     let isInternalNote = false;
     let typingTimeout = null;
     let isCurrentlyTyping = false;
-    let currentView = 'active'; // 'active' or 'archived'
+    let currentView = 'active';
     let notifications = [];
 
     const emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','💪','🙏','✍️','💅','🤳','💃','🕺','👯','🧘','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','⭐','🌟','💫','✨','🔥','💥','💯','✅','❌','⚠️','📌','📍','🔔','🔕','💬','💭','🗨','👀','💡','💰','💸','📱','💻','⌨️','🖱','🖨','📷','📹','🎥','🎬','📺','📻','🎵','🎶','🎼','🎧','🎤','🎸','🎹','🎺','🎷','🥁','🎮','🕹','🎯','🎲','🎰','🎳'];
 
-    // Notification system
     const notificationIcon = document.getElementById('notificationIcon');
     const notificationBadge = document.getElementById('notificationBadge');
     const notificationDropdown = document.getElementById('notificationDropdown');
@@ -759,7 +758,6 @@
     async function openTicketFromNotification(ticketNumber) {
       notificationDropdown.classList.remove('show');
       
-      // Clear notification for this ticket
       try {
         await fetch(`/api/notifications/${ticketNumber}`, {
           method: 'DELETE'
@@ -769,7 +767,6 @@
         console.error('Error clearing notification:', error);
       }
 
-      // Load and open the ticket
       await selectTicket(ticketNumber);
     }
 
@@ -786,7 +783,6 @@
       return `${days}d ago`;
     }
 
-    // Load tickets and notifications on page load
     loadTickets();
     loadNotifications();
     setInterval(loadTickets, 5000);
@@ -888,7 +884,9 @@
           document.querySelectorAll('.ticket-item').forEach(item => {
             item.classList.remove('active');
           });
-          event.currentTarget?.classList.add('active');
+          if (event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+          }
         }
       } catch (error) {
         console.error('Error loading ticket:', error);
@@ -937,4 +935,401 @@
       emojis.forEach(emoji => {
         const span = document.createElement('span');
         span.className = 'emoji-picker-emoji';
-        span.
+        span.textContent = emoji;
+        span.onclick = () => {
+          const cursorPos = messageInput.selectionStart;
+          const text
+        span.onclick = () => {
+          const cursorPos = messageInput.selectionStart;
+          const text
+        span.onclick = () => {
+          const cursorPos = messageInput.selectionStart;
+          const textBefore = messageInput.value.substring(0, cursorPos);
+          const textAfter = messageInput.value.substring(cursorPos);
+          messageInput.value = textBefore + emoji + textAfter;
+          messageInput.focus();
+          messageInput.selectionStart = messageInput.selectionEnd = cursorPos + emoji.length;
+          emojiPicker.classList.remove('show');
+          };
+          emojiPicker.appendChild(span);
+          });
+      emojiButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    emojiPicker.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+      emojiPicker.classList.remove('show');
+    }
+  });
+}
+
+function setupMessageInput() {
+  const messageInput = document.getElementById('messageInput');
+  
+  messageInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    handleTyping();
+  });
+
+  messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(currentTicket.ticketNumber);
+    }
+  });
+
+  messageInput.addEventListener('blur', stopTyping);
+}
+
+function displayTicketInfo() {
+  if (!currentTicket) return;
+  
+  const ticketDetailHeader = document.getElementById('ticketDetailHeader');
+  if (!ticketDetailHeader) return;
+
+  const statusClass = currentTicket.status.toLowerCase().replace(/ /g, '-');
+  const isArchived = currentTicket.isArchived;
+  
+  ticketDetailHeader.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+      <div>
+        <h2>${getCategoryIcon(currentTicket.category)} Ticket #${currentTicket.ticketNumber} ${isArchived ? '(Archived)' : ''}</h2>
+        <p style="color: #666; margin-top: 5px;">${escapeHtml(currentTicket.subject)}</p>
+        ${currentTicket.subjectCategory ? `<p style="color: #999; font-size: 12px; margin-top: 3px;">Subject: ${escapeHtml(currentTicket.subjectCategory)}</p>` : ''}
+      </div>
+      <span class="ticket-status status-${statusClass}">${currentTicket.status}</span>
+    </div>
+    
+    <div class="ticket-info">
+      <div class="info-item">
+        <span class="info-label">Category:</span>
+        ${currentTicket.category}
+      </div>
+      <div class="info-item">
+        <span class="info-label">User:</span>
+        ${escapeHtml(currentTicket.username)}
+      </div>
+      <div class="info-item">
+        <span class="info-label">Agent:</span>
+        ${currentTicket.assignedAgent || 'Unassigned'}
+      </div>
+      <div class="info-item">
+        <span class="info-label">Status:</span>
+        ${currentTicket.status}
+      </div>
+      <div class="info-item">
+        <span class="info-label">Created:</span>
+        ${formatDate(currentTicket.createdAt)}
+      </div>
+    </div>
+
+    <div class="ticket-controls">
+      <select id="assignAgent" onchange="assignAgent('${currentTicket.ticketNumber}', this.value)" ${isArchived ? 'disabled' : ''}>
+        <option value="">Assign Agent</option>
+        <option value="Agent 1" ${currentTicket.assignedAgent === 'Agent 1' ? 'selected' : ''}>Agent 1</option>
+        <option value="Agent 2" ${currentTicket.assignedAgent === 'Agent 2' ? 'selected' : ''}>Agent 2</option>
+        <option value="Agent 3" ${currentTicket.assignedAgent === 'Agent 3' ? 'selected' : ''}>Agent 3</option>
+      </select>
+
+      <select id="changeStatus" onchange="changeStatus('${currentTicket.ticketNumber}', this.value)" ${isArchived ? 'disabled' : ''}>
+        <option value="">Change Status</option>
+        <option value="New">New</option>
+        <option value="Open">Open</option>
+        <option value="Ongoing">Ongoing</option>
+        <option value="On Hold">On Hold</option>
+        <option value="Resolved">Resolved</option>
+        <option value="Closed Today">Closed Today</option>
+      </select>
+
+      <button onclick="closeTicket('${currentTicket.ticketNumber}')" ${isArchived ? 'disabled' : ''}>Close Ticket</button>
+      <button class="secondary" onclick="downloadTicketCSV('${currentTicket.ticketNumber}')">📥 Download CSV</button>
+      ${!isArchived ? `<button class="warning" onclick="archiveTicket('${currentTicket.ticketNumber}')">📦 Archive</button>` : ''}
+      <button class="danger" onclick="deleteTicket('${currentTicket.ticketNumber}')">🗑️ Delete</button>
+    </div>
+  `;
+}
+
+function displayMessages(typingUser = null) {
+  if (!currentTicket) return;
+
+  const chatArea = document.getElementById('chatArea');
+  if (!chatArea) return;
+
+  let messagesHTML = currentTicket.messages.map(msg => `
+    <div class="message-bubble ${msg.isInternal ? 'message-internal' : (msg.sender === currentTicket.username ? 'message-customer' : 'message-agent')}">
+      <div class="message-sender">${escapeHtml(msg.sender)}${msg.isInternal ? ' (Internal Note)' : ''}</div>
+      <div>${escapeHtml(msg.message)}</div>
+      <div class="message-time">${formatTime(msg.createdAt)}</div>
+    </div>
+  `).join('');
+
+  if (typingUser && typingUser === currentTicket.username) {
+    messagesHTML += `
+      <div class="typing-indicator show">
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  chatArea.innerHTML = messagesHTML;
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function setMessageType(internal) {
+  isInternalNote = internal;
+  
+  const tabs = document.querySelectorAll('.chat-tab');
+  tabs.forEach(tab => tab.classList.remove('active'));
+  tabs[internal ? 1 : 0].classList.add('active');
+  
+  const messageInput = document.getElementById('messageInput');
+  if (messageInput) {
+    messageInput.placeholder = internal ? 'Add internal note...' : 'Type your message... (Shift+Enter for new line)';
+  }
+}
+
+function handleTyping() {
+  if (!currentTicket) return;
+
+  if (!isCurrentlyTyping) {
+    isCurrentlyTyping = true;
+    updateTypingStatus(true);
+  }
+
+  clearTimeout(typingTimeout);
+
+  typingTimeout = setTimeout(() => {
+    stopTyping();
+  }, 3000);
+}
+
+function stopTyping() {
+  if (isCurrentlyTyping) {
+    isCurrentlyTyping = false;
+    updateTypingStatus(false);
+  }
+  clearTimeout(typingTimeout);
+}
+
+async function updateTypingStatus(isTyping) {
+  if (!currentTicket) return;
+
+  try {
+    await fetch(`/api/tickets/${currentTicket.ticketNumber}/typing`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user: 'Admin',
+        isTyping: isTyping
+      })
+    });
+  } catch (error) {
+    console.error('Error updating typing status:', error);
+  }
+}
+
+async function sendMessage(ticketNumber) {
+  const messageInput = document.getElementById('messageInput');
+  const message = messageInput.value.trim();
+
+  if (!message) return;
+
+  stopTyping();
+
+  try {
+    const response = await fetch(`/api/tickets/${ticketNumber}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender: 'Admin',
+        message: message,
+        isInternal: isInternalNote
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+      currentTicket = data.ticket;
+      displayMessages();
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+}
+
+async function changeStatus(ticketNumber, status) {
+  if (!status) return;
+
+  try {
+    const response = await fetch(`/api/tickets/${ticketNumber}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      loadTickets();
+    }
+  } catch (error) {
+    console.error('Error changing status:', error);
+  }
+}
+
+async function assignAgent(ticketNumber, agent) {
+  if (!agent) return;
+
+  try {
+    const response = await fetch(`/api/tickets/${ticketNumber}/assign`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      loadTickets();
+    }
+  } catch (error) {
+    console.error('Error assigning agent:', error);
+  }
+}
+
+async function closeTicket(ticketNumber) {
+  if (!confirm('Are you sure you want to close this ticket?')) return;
+
+  try {
+    const response = await fetch(`/api/tickets/${ticketNumber}/close`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      loadTickets();
+    }
+  } catch (error) {
+    console.error('Error closing ticket:', error);
+  }
+}
+
+async function archiveTicket(ticketNumber) {
+  if (!confirm('Archive this ticket? You can view it later in the Archived section.')) return;
+
+  try {
+    const response = await fetch(`/api/tickets/${ticketNumber}/archive`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert('✅ Ticket archived successfully');
+      const mainContent = document.getElementById('mainContent');
+      mainContent.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <h3>Select a ticket to view details</h3>
+        </div>
+      `;
+      currentTicket = null;
+      loadTickets();
+    } else {
+      alert('❌ Failed to archive ticket: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error archiving ticket:', error);
+    alert('❌ Error archiving ticket. Please try again.');
+  }
+}
+
+async function downloadTicketCSV(ticketNumber) {
+  try {
+    window.location.href = `/api/tickets/${ticketNumber}/download`;
+  } catch (error) {
+    console.error('Error downloading CSV:', error);
+    alert('❌ Error downloading CSV. Please try again.');
+  }
+}
+
+async function deleteTicket(ticketNumber) {
+  if (!confirm('⚠️ Are you sure you want to DELETE this ticket permanently? This action cannot be undone!')) return;
+
+  try {
+    const response = await fetch(`/api/tickets/${ticketNumber}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      const mainContent = document.getElementById('mainContent');
+      mainContent.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <h3>Select a ticket to view details</h3>
+        </div>
+      `;
+      currentTicket = null;
+      loadTickets();
+      alert('✅ Ticket deleted successfully');
+    } else {
+      alert('❌ Failed to delete ticket: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error deleting ticket:', error);
+    alert('❌ Error deleting ticket. Please try again.');
+  }
+}
+
+function filterTickets(status) {
+  currentFilter = status;
+  const filtered = tickets.filter(t => t.status === status);
+  displayTickets(filtered);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatDate(date) {
+  return new Date(date).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function formatTime(date) {
+  return new Date(date).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+window.addEventListener('beforeunload', () => {
+  stopTyping();
+});
+</script>
+</body>
+</html>
