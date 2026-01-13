@@ -1,3 +1,10 @@
+// ADMIN.JS VERSION 2.0 - FIXED VERSION - January 13, 2026
+console.log('%c ADMIN PANEL v2.0 LOADED ', 'background: #2D7A3E; color: white; font-size: 16px; padding: 5px;');
+console.log('✅ Messages display fixed');
+console.log('✅ Reply functionality fixed');
+console.log('✅ Internal notes collapsible');
+console.log('✅ Debug logging enabled');
+
 // Global Variables
 let tickets = [];
 let archivedTickets = [];
@@ -134,6 +141,12 @@ async function viewTicket(ticketNumber) {
   try {
     const response = await fetch(`/api/tickets/${ticketNumber}`);
     const data = await response.json();
+    
+    console.log('=== API RESPONSE ===');
+    console.log('Full response:', data);
+    console.log('Ticket:', data.ticket);
+    console.log('Messages array:', data.ticket?.messages);
+    console.log('===================');
     
     if (data.success) {
       currentTicket = data.ticket;
