@@ -29,6 +29,7 @@ body {
 .logo {
   padding: 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #2D7A3E;
 }
 
 .logo h2 {
@@ -63,7 +64,7 @@ body {
 }
 
 .nav-item.active {
-  background: #4299e1;
+  background: #2D7A3E;
   color: white;
 }
 
@@ -197,7 +198,7 @@ body {
 .avatar {
   width: 40px;
   height: 40px;
-  background: #4299e1;
+  background: #2D7A3E;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -276,14 +277,14 @@ body {
 }
 
 .filter-btn:hover {
-  border-color: #4299e1;
-  color: #4299e1;
+  border-color: #2D7A3E;
+  color: #2D7A3E;
 }
 
 .filter-btn.active {
-  background: #4299e1;
+  background: #2D7A3E;
   color: white;
-  border-color: #4299e1;
+  border-color: #2D7A3E;
 }
 
 .search-input {
@@ -293,6 +294,11 @@ body {
   border-radius: 6px;
   font-size: 14px;
   max-width: 400px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2D7A3E;
 }
 
 /* Tickets Grid */
@@ -321,13 +327,13 @@ body {
 }
 
 .ticket-item:hover {
-  border-color: #4299e1;
-  box-shadow: 0 2px 8px rgba(66, 153, 225, 0.1);
+  border-color: #2D7A3E;
+  box-shadow: 0 2px 8px rgba(45, 122, 62, 0.1);
 }
 
 .ticket-item.active {
-  background: #ebf8ff;
-  border-color: #4299e1;
+  background: #e8f5ea;
+  border-color: #2D7A3E;
 }
 
 .ticket-header-info {
@@ -339,7 +345,7 @@ body {
 
 .ticket-number {
   font-weight: 600;
-  color: #2d3748;
+  color: #2D7A3E;
 }
 
 .ticket-status-badge {
@@ -362,8 +368,8 @@ body {
 
 .ticket-status-badge.in-progress,
 .ticket-status-badge.ongoing {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .ticket-status-badge.resolved {
@@ -446,12 +452,12 @@ body {
 }
 
 .btn-primary {
-  background: #4299e1;
+  background: #2D7A3E;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #3182ce;
+  background: #246830;
 }
 
 .btn-secondary {
@@ -553,8 +559,8 @@ body {
 }
 
 .message.admin {
-  background: #ebf8ff;
-  border-left: 3px solid #4299e1;
+  background: #e8f5ea;
+  border-left: 3px solid #2D7A3E;
 }
 
 .message.user {
@@ -602,7 +608,7 @@ body {
 
 .message-input:focus {
   outline: none;
-  border-color: #4299e1;
+  border-color: #2D7A3E;
 }
 
 .emoji-picker-btn {
