@@ -2,7 +2,7 @@
 let tickets = [];
 let archivedTickets = [];
 let currentTicket = null;
-let currentFilter = 'Open'; // Changed to match backend status
+let currentFilter = 'all'; // Show all tickets by default
 let typingTimer = null;
 let notifications = [];
 
@@ -44,7 +44,8 @@ async function loadTickets() {
     
     if (data.success) {
       tickets = data.tickets;
-      displayTickets(tickets.filter(t => t.status === currentFilter));
+      // Show all tickets initially, not filtered
+      displayTickets(tickets);
       updateBadges();
     }
   } catch (error) {
@@ -397,6 +398,16 @@ async function deleteTicket(ticketNumber) {
 
 // FILTER AND SEARCH
 function filterTickets(status) {
+  // Handle "All" filter
+  if (status === 'all') {
+    displayTickets(tickets);
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    return;
+  }
+  
   // Map filter button values to actual status values
   const statusMap = {
     'open': 'Open',
