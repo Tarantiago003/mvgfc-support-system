@@ -350,12 +350,18 @@ body {
   text-transform: uppercase;
 }
 
-.ticket-status-badge.open {
-  background: #fef3c7;
-  color: #92400e;
+.ticket-status-badge.new {
+  background: #e3f2fd;
+  color: #1976d2;
 }
 
-.ticket-status-badge.in-progress {
+.ticket-status-badge.open {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.ticket-status-badge.in-progress,
+.ticket-status-badge.ongoing {
   background: #dbeafe;
   color: #1e40af;
 }
@@ -363,6 +369,16 @@ body {
 .ticket-status-badge.resolved {
   background: #d1fae5;
   color: #065f46;
+}
+
+.ticket-status-badge.on-hold {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ticket-status-badge.closed-today {
+  background: #e0e0e0;
+  color: #666;
 }
 
 .ticket-subject {
