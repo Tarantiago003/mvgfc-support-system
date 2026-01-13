@@ -562,24 +562,50 @@ function escapeHtml(text) {
 }
 
 function formatDate(date) {
-  return new Date(date).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  if (!date) return 'N/A';
+  try {
+    return new Date(date).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', date, error);
+    return 'Invalid Date';
+  }
 }
 
 function formatTime(date) {
-  return new Date(date).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  if (!date) return 'N/A';
+  try {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting time:', date, error);
+    return 'Invalid Time';
+  }
 }
 
 function logout() {
   if (confirm('Are you sure you want to logout?')) {
     window.location.href = '/logout';
+  }
+}
+
+// Toggle internal notes
+function toggleInternalNotes() {
+  const content = document.getElementById('internalNotesContent');
+  const toggle = document.getElementById('notesToggle');
+  
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    toggle.textContent = '▲';
+  } else {
+    content.style.display = 'none';
+    toggle.textContent = '▼';
   }
 }
 
