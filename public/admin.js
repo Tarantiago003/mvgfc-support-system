@@ -84,7 +84,7 @@ function displayTickets(ticketsToShow) {
 
   ticketList.innerHTML = ticketsToShow.map(ticket => `
     <div class="ticket-item ${currentTicket && currentTicket.ticketNumber === ticket.ticketNumber ? 'active' : ''}" 
-         onclick="viewTicket('${ticket.ticketNumber}')">
+         onclick="viewTicket('${ticket.ticketNumber}', this)">
       <div class="ticket-header-info">
         <span class="ticket-number">#${ticket.ticketNumber}</span>
         <span class="ticket-status-badge ${ticket.status.toLowerCase().replace(/ /g, '-')}">${ticket.status}</span>
@@ -137,7 +137,7 @@ function displayArchivedTickets(archivedToShow) {
 }
 
 // VIEW TICKET DETAILS
-async function viewTicket(ticketNumber) {
+async function viewTicket(ticketNumber, clickedElement) {
   try {
     const response = await fetch(`/api/tickets/${ticketNumber}`);
     const data = await response.json();
@@ -156,7 +156,11 @@ async function viewTicket(ticketNumber) {
       document.querySelectorAll('.ticket-item').forEach(item => {
         item.classList.remove('active');
       });
-      event.target.closest('.ticket-item')?.classList.add('active');
+      
+      // Add active class to clicked element if provided
+      if (clickedElement) {
+        clickedElement.classList.add('active');
+      }
     }
   } catch (error) {
     console.error('Error loading ticket:', error);
@@ -308,6 +312,7 @@ async function addInternalNote(ticketNumber) {
 
     if (data.success) {
       input.value = '';
+      // Refresh ticket view
       viewTicket(ticketNumber);
     }
   } catch (error) {
@@ -337,6 +342,7 @@ async function updateTicketStatus(ticketNumber, newStatus) {
     if (data.success) {
       loadTickets();
       if (currentTicket && currentTicket.ticketNumber === ticketNumber) {
+        // Refresh current ticket view
         viewTicket(ticketNumber);
       }
     }
