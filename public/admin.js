@@ -215,7 +215,7 @@ function displayTicketDetails(ticket) {
       ${ticket.messages.map(msg => `
         <div class="message ${msg.sender.toLowerCase()}">
           <div class="message-header">
-            <span class="message-sender">${msg.sender === 'Admin' ? '👤 Admin' : '👨 ' + escapeHtml(ticket.username)}</span>
+            <span class="message-sender">${msg.sender === 'Admin' ? '👤 Career Coach' : '👨 ' + escapeHtml(ticket.username)}</span>
             <span class="message-time">${formatTime(msg.createdAt)}</span>
           </div>
           <div class="message-content">${escapeHtml(msg.message)}</div>
@@ -642,4 +642,5 @@ document.addEventListener('click', (e) => {
 window.addEventListener('beforeunload', () => {
   stopTyping();
 });
+
 
