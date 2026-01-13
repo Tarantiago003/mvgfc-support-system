@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - MVGFC Support System</title>
+  <title>MVGFC Admin - Support Ticket System</title>
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -11,7 +11,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">
-        <h2>🎫 Aftersales MU Chat</h2>
+        <h2>🎫 MVGFC Admin</h2>
+        <p style="font-size: 11px; opacity: 0.9; margin-top: 4px;">Manuel V. Gallego Foundation Colleges</p>
       </div>
       
       <nav class="nav-menu">
@@ -49,8 +50,8 @@
       <div class="user-info">
         <div class="avatar">👤</div>
         <div class="user-details">
-          <div class="username">Career Coach</div>
-          <!--<button class="logout-btn" onclick="logout()">Logout</button>-->
+          <div class="username">Admin User</div>
+          <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
       </div>
     </aside>
@@ -63,7 +64,8 @@
           <h1>Support Tickets</h1>
           <div class="header-actions">
             <div class="filter-buttons">
-              <button class="filter-btn active" onclick="filterTickets('open')">Open</button>
+              <button class="filter-btn active" onclick="filterTickets('all')">All</button>
+              <button class="filter-btn" onclick="filterTickets('open')">Open</button>
               <button class="filter-btn" onclick="filterTickets('in-progress')">In Progress</button>
               <button class="filter-btn" onclick="filterTickets('resolved')">Resolved</button>
             </div>
