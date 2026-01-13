@@ -2,7 +2,7 @@
 let tickets = [];
 let archivedTickets = [];
 let currentTicket = null;
-let currentFilter = 'open';
+let currentFilter = 'Open'; // Changed to match backend status
 let typingTimer = null;
 let notifications = [];
 
@@ -54,7 +54,7 @@ async function loadTickets() {
 
 async function loadArchivedTickets() {
   try {
-    const response = await fetch('/api/tickets/archived');
+    const response = await fetch('/api/tickets?archived=true');
     const data = await response.json();
     
     if (data.success) {
@@ -79,10 +79,10 @@ function displayTickets(ticketsToShow) {
          onclick="viewTicket('${ticket.ticketNumber}')">
       <div class="ticket-header-info">
         <span class="ticket-number">#${ticket.ticketNumber}</span>
-        <span class="ticket-status-badge ${ticket.status}">${ticket.status}</span>
+        <span class="ticket-status-badge ${ticket.status.toLowerCase().replace(/ /g, '-')}">${ticket.status}</span>
       </div>
       <div class="ticket-subject">${escapeHtml(ticket.subject || 'No Subject')}</div>
-      <div class="ticket-preview">${escapeHtml(ticket.messages[0]?.content || 'No messages')}</div>
+      <div class="ticket-preview">${escapeHtml(ticket.messages[0]?.message || 'No messages')}</div>
       <div class="ticket-meta">
         <span>${escapeHtml(ticket.username)}</span>
         <span>${formatDate(ticket.createdAt)}</span>
@@ -280,10 +280,14 @@ async function addInternalNote(ticketNumber) {
   if (!content) return;
 
   try {
-    const response = await fetch(`/api/tickets/${ticketNumber}/note`, {
+    const response = await fetch(`/api/tickets/${ticketNumber}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, author: 'Admin User' })
+      body: JSON.stringify({ 
+        sender: 'Admin',
+        message: content,
+        isInternal: true
+      })
     });
 
     const data = await response.json();
@@ -309,7 +313,7 @@ function insertEmoji() {
 async function updateTicketStatus(ticketNumber, newStatus) {
   try {
     const response = await fetch(`/api/tickets/${ticketNumber}/status`, {
-      method: 'PUT',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
     });
@@ -333,7 +337,7 @@ async function archiveTicket(ticketNumber) {
 
   try {
     const response = await fetch(`/api/tickets/${ticketNumber}/archive`, {
-      method: 'POST',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' }
     });
 
@@ -393,8 +397,15 @@ async function deleteTicket(ticketNumber) {
 
 // FILTER AND SEARCH
 function filterTickets(status) {
-  currentFilter = status;
-  const filtered = tickets.filter(t => t.status === status);
+  // Map filter button values to actual status values
+  const statusMap = {
+    'open': 'Open',
+    'in-progress': 'Ongoing',
+    'resolved': 'Resolved'
+  };
+  
+  currentFilter = statusMap[status] || status;
+  const filtered = tickets.filter(t => t.status === currentFilter);
   displayTickets(filtered);
   
   // Update filter buttons
