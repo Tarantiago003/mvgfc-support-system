@@ -213,12 +213,12 @@ function displayTicketDetails(ticket) {
 
     <div class="messages-container" id="messagesContainer">
       ${ticket.messages.map(msg => `
-        <div class="message ${msg.sender}">
+        <div class="message ${msg.sender.toLowerCase()}">
           <div class="message-header">
-            <span class="message-sender">${msg.sender === 'admin' ? '👤 Admin' : '👨 ' + escapeHtml(ticket.username)}</span>
-            <span class="message-time">${formatTime(msg.timestamp)}</span>
+            <span class="message-sender">${msg.sender === 'Admin' ? '👤 Admin' : '👨 ' + escapeHtml(ticket.username)}</span>
+            <span class="message-time">${formatTime(msg.createdAt)}</span>
           </div>
-          <div class="message-content">${escapeHtml(msg.content)}</div>
+          <div class="message-content">${escapeHtml(msg.message)}</div>
         </div>
       `).join('')}
       <div class="typing-indicator" id="typingIndicator">
@@ -274,10 +274,10 @@ async function sendAdminMessage(ticketNumber) {
   if (!content) return;
 
   try {
-    const response = await fetch(`/api/tickets/${ticketNumber}/message`, {
+    const response = await fetch(`/api/tickets/${ticketNumber}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, sender: 'admin' })
+      body: JSON.stringify({ message: content, sender: 'Admin' })
     });
 
     const data = await response.json();
@@ -642,3 +642,4 @@ document.addEventListener('click', (e) => {
 window.addEventListener('beforeunload', () => {
   stopTyping();
 });
+
