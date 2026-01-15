@@ -35,7 +35,7 @@ const ticketSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String },
   subject: { type: String, required: true },
-  subjectCategory: { type: String }, // New field for dropdown subject
+  subjectCategory: { type: String },
   status: { 
     type: String, 
     enum: ['New', 'Open', 'On Hold', 'Ongoing', 'Resolved', 'Closed Today'],
@@ -53,18 +53,8 @@ const Ticket = mongoose.model('Ticket', ticketSchema);
 
 // ============ GOOGLE SHEETS INTEGRATION ============
 
-// Google Sheets configuration
-// To use this, you need to:
-// 1. Create a Google Cloud Project
-// 2. Enable Google Sheets API
-// 3. Create a Service Account and download credentials JSON
-// 4. Share your Google Sheet with the service account email
-// 5. Set environment variable GOOGLE_SHEETS_CREDENTIALS with the JSON content
-// 6. Set environment variable GOOGLE_SHEET_ID with your sheet ID
-
 async function logToGoogleSheet(ticketData) {
   try {
-    // Check if credentials are configured
     if (!process.env.GOOGLE_SHEETS_CREDENTIALS || !process.env.GOOGLE_SHEET_ID) {
       console.log('⚠️ Google Sheets not configured. Skipping sheet logging.');
       return;
@@ -79,7 +69,6 @@ async function logToGoogleSheet(ticketData) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // Format: [Ticket Number, Subject, Category, Date Created, Status]
     const values = [[
       ticketData.ticketNumber,
       ticketData.subject,
@@ -90,7 +79,7 @@ async function logToGoogleSheet(ticketData) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Sheet1!A:E', // Adjust range as needed
+      range: 'Sheet1!A:E',
       valueInputOption: 'USER_ENTERED',
       resource: { values },
     });
@@ -114,7 +103,7 @@ setInterval(() => {
 }, 10000);
 
 // ============ NOTIFICATION SYSTEM ============
-const notifications = new Map(); // Map of admin -> array of notifications
+const notifications = new Map();
 
 function addNotification(ticketNumber, username, message) {
   const notification = {
@@ -124,7 +113,6 @@ function addNotification(ticketNumber, username, message) {
     timestamp: Date.now()
   };
   
-  // Add to notifications (using 'admin' as key, but you can make this per-user)
   if (!notifications.has('admin')) {
     notifications.set('admin', []);
   }
@@ -132,7 +120,6 @@ function addNotification(ticketNumber, username, message) {
   const adminNotifs = notifications.get('admin');
   adminNotifs.unshift(notification);
   
-  // Keep only last 50 notifications
   if (adminNotifs.length > 50) {
     adminNotifs.pop();
   }
@@ -354,6 +341,49 @@ app.post('/api/tickets/:ticketNumber/messages', async (req, res) => {
   }
 });
 
+// Delete internal note (Admin only)
+app.delete('/api/tickets/:ticketNumber/messages/:messageId', async (req, res) => {
+  try {
+    const { ticketNumber, messageId } = req.params;
+    
+    const ticket = await Ticket.findOne({ ticketNumber });
+
+    if (!ticket) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Ticket not found' 
+      });
+    }
+
+    // Find and remove the message
+    const messageIndex = ticket.messages.findIndex(
+      msg => msg._id.toString() === messageId
+    );
+
+    if (messageIndex === -1) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Note not found' 
+      });
+    }
+
+    // Remove the message
+    ticket.messages.splice(messageIndex, 1);
+    ticket.updatedAt = Date.now();
+    
+    await ticket.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Note deleted successfully',
+      ticket 
+    });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Update ticket status (Admin)
 app.patch('/api/tickets/:ticketNumber/status', async (req, res) => {
   try {
@@ -424,7 +454,7 @@ app.patch('/api/tickets/:ticketNumber/close', async (req, res) => {
   }
 });
 
-// Archive ticket (Admin only) - NEW
+// Archive ticket (Admin only)
 app.patch('/api/tickets/:ticketNumber/archive', async (req, res) => {
   try {
     const ticket = await Ticket.findOneAndUpdate(
@@ -457,7 +487,7 @@ app.patch('/api/tickets/:ticketNumber/archive', async (req, res) => {
   }
 });
 
-// Download ticket as CSV - NEW
+// Download ticket as CSV
 app.get('/api/tickets/:ticketNumber/download', async (req, res) => {
   try {
     const ticket = await Ticket.findOne({ 
@@ -479,7 +509,7 @@ app.get('/api/tickets/:ticketNumber/download', async (req, res) => {
     csv += 'Timestamp,Sender,Message,Type\n';
     
     ticket.messages.forEach(msg => {
-      const msgText = msg.message.replace(/"/g, '""'); // Escape quotes
+      const msgText = msg.message.replace(/"/g, '""');
       const msgType = msg.isInternal ? 'Internal Note' : 'Public';
       csv += `"${new Date(msg.createdAt).toLocaleString()}","${msg.sender}","${msgText}","${msgType}"\n`;
     });
@@ -494,7 +524,7 @@ app.get('/api/tickets/:ticketNumber/download', async (req, res) => {
   }
 });
 
-// Delete ticket (Admin only) - Keep for permanent deletion
+// Delete ticket (Admin only)
 app.delete('/api/tickets/:ticketNumber', async (req, res) => {
   try {
     const ticket = await Ticket.findOneAndDelete({ 
