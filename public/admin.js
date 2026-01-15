@@ -321,12 +321,84 @@ async function addInternalNote(ticketNumber) {
 }
 
 function insertEmoji() {
-  const emojis = ['😊', '👍', '❤️', '🎉', '✅', '👋', '🙏', '💡', '⚠️', '📝'];
-  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-  const input = document.getElementById('adminMessageInput');
-  input.value += emoji;
-  input.focus();
+  const emojiPicker = document.getElementById('emojiPickerDropdown');
+  
+  if (!emojiPicker) {
+    // Create emoji picker if it doesn't exist
+    createEmojiPicker();
+  } else {
+    // Toggle visibility
+    emojiPicker.classList.toggle('show');
+  }
 }
+
+function createEmojiPicker() {
+  // Create emoji picker dropdown
+  const emojiPicker = document.createElement('div');
+  emojiPicker.id = 'emojiPickerDropdown';
+  emojiPicker.className = 'emoji-picker-dropdown';
+  
+  // Emoji categories
+  const emojis = {
+    'Smileys': ['😀', '😃', '😄', '😁', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓'],
+    'Gestures': ['👍', '👎', '👌', '✌️', '🤞', '🤝', '👏', '🙌', '👐', '🤲', '🙏', '✍️', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄'],
+    'Emotions': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️'],
+    'Work': ['💼', '📁', '📂', '🗂️', '📅', '📆', '🗒️', '🗓️', '📇', '📈', '📉', '📊', '📋', '📌', '📍', '📎', '🖇️', '📏', '📐', '✂️', '🗃️', '🗄️', '🗑️', '🔒', '🔓', '🔐', '🔑', '🗝️', '🔨', '🪓', '⛏️', '⚒️', '🛠️', '🗡️', '⚔️', '💣', '🪃', '🏹'],
+    'Symbols': ['✅', '❌', '⭐', '🌟', '💫', '✨', '⚡', '🔥', '💥', '💢', '💨', '💦', '💧', '🌈', '☀️', '⛅', '☁️', '🌤️', '⛈️', '🌩️', '⚠️', '🚨', '🔔', '🔕', '📢', '📣', '💬', '💭', '🗯️', '💤']
+  };
+  
+  let html = '<div class="emoji-picker-header"><h4>Select Emoji</h4><button onclick="closeEmojiPicker()" class="close-emoji-btn">✕</button></div>';
+  html += '<div class="emoji-picker-content">';
+  
+  for (const [category, emojiList] of Object.entries(emojis)) {
+    html += `<div class="emoji-category"><h5>${category}</h5><div class="emoji-grid">`;
+    emojiList.forEach(emoji => {
+      html += `<button class="emoji-btn" onclick="selectEmoji('${emoji}')">${emoji}</button>`;
+    });
+    html += '</div></div>';
+  }
+  
+  html += '</div>';
+  emojiPicker.innerHTML = html;
+  
+  document.body.appendChild(emojiPicker);
+  emojiPicker.classList.add('show');
+}
+
+function selectEmoji(emoji) {
+  const input = document.getElementById('adminMessageInput');
+  if (input) {
+    const cursorPos = input.selectionStart;
+    const textBefore = input.value.substring(0, cursorPos);
+    const textAfter = input.value.substring(input.selectionEnd);
+    
+    input.value = textBefore + emoji + textAfter;
+    input.focus();
+    
+    // Set cursor position after emoji
+    const newPos = cursorPos + emoji.length;
+    input.setSelectionRange(newPos, newPos);
+  }
+  
+  closeEmojiPicker();
+}
+
+function closeEmojiPicker() {
+  const emojiPicker = document.getElementById('emojiPickerDropdown');
+  if (emojiPicker) {
+    emojiPicker.classList.remove('show');
+  }
+}
+
+// Close emoji picker when clicking outside
+document.addEventListener('click', (e) => {
+  const emojiPicker = document.getElementById('emojiPickerDropdown');
+  const emojiBtn = document.querySelector('.emoji-picker-btn');
+  
+  if (emojiPicker && !emojiPicker.contains(e.target) && !emojiBtn?.contains(e.target)) {
+    closeEmojiPicker();
+  }
+});
 
 // STATUS UPDATE
 async function updateTicketStatus(ticketNumber, newStatus) {
@@ -642,5 +714,6 @@ document.addEventListener('click', (e) => {
 window.addEventListener('beforeunload', () => {
   stopTyping();
 });
+
 
 
