@@ -766,11 +766,12 @@
       const visibleMessages = currentTicket.messages.filter(msg => !msg.isInternal);
 
       let messagesHTML = visibleMessages.map(msg => {
-        const isCustomer = msg.sender === currentTicket.username;
-        return `
-          <div class="message ${isCustomer ? 'customer' : 'admin'}">
-            <div class="message-sender">${escapeHtml(msg.sender)}</div>
-            <div class="message-bubble">
+          const isCustomer = msg.sender === currentTicket.username;
+          const displayName = msg.sender === 'Admin' ? 'Career Coach' : escapeHtml(msg.sender);
+          return `
+            <div class="message ${isCustomer ? 'customer' : 'admin'}">
+              <div class="message-sender">${displayName}</div>
+              <div class="message-bubble">
               ${escapeHtml(msg.message)}
               <div class="message-time">${formatTime(msg.createdAt)}</div>
             </div>
@@ -895,6 +896,7 @@
   </script>
 </body>
 </html>
+
 
 
 
