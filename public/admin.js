@@ -9,7 +9,7 @@ console.log('✅ Debug logging enabled');
 let tickets = [];
 let archivedTickets = [];
 let currentTicket = null;
-let currentFilter = 'all'; // Show all tickets by default
+let currentFilter = 'all';
 let typingTimer = null;
 let notifications = [];
 
@@ -22,13 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // SECTION NAVIGATION
 function showSection(section) {
-  // Update nav items
   document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.remove('active');
   });
   event.target.closest('.nav-item').classList.add('active');
 
-  // Update sections
   document.querySelectorAll('.content-section').forEach(sec => {
     sec.classList.remove('active');
   });
@@ -51,7 +49,6 @@ async function loadTickets() {
     
     if (data.success) {
       tickets = data.tickets;
-      // Show all tickets initially, not filtered
       displayTickets(tickets);
       updateBadges();
     }
@@ -152,12 +149,10 @@ async function viewTicket(ticketNumber, clickedElement) {
       currentTicket = data.ticket;
       displayTicketDetails(currentTicket);
       
-      // Update active ticket in list
       document.querySelectorAll('.ticket-item').forEach(item => {
         item.classList.remove('active');
       });
       
-      // Add active class to clicked element if provided
       if (clickedElement) {
         clickedElement.classList.add('active');
       }
@@ -183,9 +178,9 @@ function displayTicketDetails(ticket) {
         <div class="info-item">
           <span class="info-label">Status</span>
           <select class="status-selector" onchange="updateTicketStatus('${ticket.ticketNumber}', this.value)">
-            <option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Open</option>
-            <option value="in-progress" ${ticket.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
-            <option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+            <option value="open" ${ticket.status === 'Open' ? 'selected' : ''}>Open</option>
+            <option value="in-progress" ${ticket.status === 'Ongoing' ? 'selected' : ''}>In Progress</option>
+            <option value="resolved" ${ticket.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
           </select>
         </div>
         <div class="info-item">
@@ -212,7 +207,7 @@ function displayTicketDetails(ticket) {
     </div>
 
     <div class="messages-container" id="messagesContainer">
-      ${ticket.messages.map(msg => `
+      ${ticket.messages.filter(m => !m.isInternal).map(msg => `
         <div class="message ${msg.sender.toLowerCase()}">
           <div class="message-header">
             <span class="message-sender">${msg.sender === 'Admin' ? '👤 Career Coach' : '👨 ' + escapeHtml(ticket.username)}</span>
@@ -226,19 +221,43 @@ function displayTicketDetails(ticket) {
       </div>
     </div>
 
-    <div class="internal-notes">
-      <h3>🔒 Internal Notes (Not visible to user)</h3>
-      ${ticket.internalNotes?.map(note => `
-        <div class="note">
-          <div class="note-header">
-            <span>${escapeHtml(note.author)}</span>
-            <span>${formatTime(note.timestamp)}</span>
-          </div>
-          <div class="note-content">${escapeHtml(note.content)}</div>
+    <div class="internal-notes-widget">
+      <div class="internal-notes-header" onclick="toggleInternalNotes()">
+        <div class="notes-header-left">
+          <span class="notes-icon">🔒</span>
+          <h3>Internal Notes</h3>
+          <span class="notes-count">(${ticket.messages.filter(m => m.isInternal).length})</span>
         </div>
-      `).join('') || '<p style="color: #78350f; font-size: 13px;">No internal notes yet.</p>'}
-      <textarea class="note-input" placeholder="Add internal note..." id="noteInput"></textarea>
-      <button class="btn btn-secondary" style="margin-top: 8px;" onclick="addInternalNote('${ticket.ticketNumber}')">Add Note</button>
+        <button class="notes-toggle-btn" id="notesToggleBtn">▼</button>
+      </div>
+      
+      <div class="internal-notes-content" id="internalNotesContent">
+        <p class="notes-description">Private notes only visible to admins</p>
+        
+        <div class="notes-list">
+          ${ticket.messages.filter(m => m.isInternal).map((note, index) => `
+            <div class="note-item">
+              <div class="note-header">
+                <div class="note-info">
+                  <span class="note-author">👤 ${escapeHtml(note.sender)}</span>
+                  <span class="note-time">📅 ${formatTime(note.createdAt)}</span>
+                </div>
+                <button class="delete-note-btn" onclick="deleteInternalNote('${ticket.ticketNumber}', '${note._id}')" title="Delete note">
+                  🗑️
+                </button>
+              </div>
+              <div class="note-content">${escapeHtml(note.message)}</div>
+            </div>
+          `).join('') || '<div class="no-notes">📝 No internal notes yet. Add one below.</div>'}
+        </div>
+        
+        <div class="add-note-section">
+          <textarea class="note-input" placeholder="Add internal note..." id="noteInput" rows="3"></textarea>
+          <button class="btn btn-secondary" onclick="addInternalNote('${ticket.ticketNumber}')">
+            ➕ Add Note
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="message-input-container">
@@ -254,7 +273,6 @@ function displayTicketDetails(ticket) {
     </div>
   `;
 
-  // Scroll messages to bottom
   const messagesContainer = document.getElementById('messagesContainer');
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
@@ -277,7 +295,11 @@ async function sendAdminMessage(ticketNumber) {
     const response = await fetch(`/api/tickets/${ticketNumber}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: content, sender: 'Admin' })
+      body: JSON.stringify({ 
+        sender: 'Admin',
+        message: content,
+        isInternal: false
+      })
     });
 
     const data = await response.json();
@@ -312,7 +334,6 @@ async function addInternalNote(ticketNumber) {
 
     if (data.success) {
       input.value = '';
-      // Refresh ticket view
       viewTicket(ticketNumber);
     }
   } catch (error) {
@@ -320,25 +341,64 @@ async function addInternalNote(ticketNumber) {
   }
 }
 
+// Toggle Internal Notes Widget
+function toggleInternalNotes() {
+  const content = document.getElementById('internalNotesContent');
+  const toggleBtn = document.getElementById('notesToggleBtn');
+  
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    toggleBtn.textContent = '▼';
+    toggleBtn.style.transform = 'rotate(0deg)';
+  } else {
+    content.classList.add('collapsed');
+    toggleBtn.textContent = '▶';
+    toggleBtn.style.transform = 'rotate(-90deg)';
+  }
+}
+
+// Delete Internal Note
+async function deleteInternalNote(ticketNumber, noteId) {
+  if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/tickets/${ticketNumber}/messages/${noteId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log('✅ Note deleted successfully');
+      viewTicket(ticketNumber);
+    } else {
+      alert('❌ Failed to delete note: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    alert('❌ Error deleting note. Please try again.');
+  }
+}
+
+// EMOJI PICKER
 function insertEmoji() {
   const emojiPicker = document.getElementById('emojiPickerDropdown');
   
   if (!emojiPicker) {
-    // Create emoji picker if it doesn't exist
     createEmojiPicker();
   } else {
-    // Toggle visibility
     emojiPicker.classList.toggle('show');
   }
 }
 
 function createEmojiPicker() {
-  // Create emoji picker dropdown
   const emojiPicker = document.createElement('div');
   emojiPicker.id = 'emojiPickerDropdown';
   emojiPicker.className = 'emoji-picker-dropdown';
   
-  // Emoji categories
   const emojis = {
     'Smileys': ['😀', '😃', '😄', '😁', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓'],
     'Gestures': ['👍', '👎', '👌', '✌️', '🤞', '🤝', '👏', '🙌', '👐', '🤲', '🙏', '✍️', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄'],
@@ -375,7 +435,6 @@ function selectEmoji(emoji) {
     input.value = textBefore + emoji + textAfter;
     input.focus();
     
-    // Set cursor position after emoji
     const newPos = cursorPos + emoji.length;
     input.setSelectionRange(newPos, newPos);
   }
@@ -390,7 +449,6 @@ function closeEmojiPicker() {
   }
 }
 
-// Close emoji picker when clicking outside
 document.addEventListener('click', (e) => {
   const emojiPicker = document.getElementById('emojiPickerDropdown');
   const emojiBtn = document.querySelector('.emoji-picker-btn');
@@ -414,7 +472,6 @@ async function updateTicketStatus(ticketNumber, newStatus) {
     if (data.success) {
       loadTickets();
       if (currentTicket && currentTicket.ticketNumber === ticketNumber) {
-        // Refresh current ticket view
         viewTicket(ticketNumber);
       }
     }
@@ -489,7 +546,6 @@ async function deleteTicket(ticketNumber) {
 
 // FILTER AND SEARCH
 function filterTickets(status) {
-  // Handle "All" filter
   if (status === 'all') {
     displayTickets(tickets);
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -499,7 +555,6 @@ function filterTickets(status) {
     return;
   }
   
-  // Map filter button values to actual status values
   const statusMap = {
     'open': 'Open',
     'in-progress': 'Ongoing',
@@ -510,7 +565,6 @@ function filterTickets(status) {
   const filtered = tickets.filter(t => t.status === currentFilter);
   displayTickets(filtered);
   
-  // Update filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.classList.remove('active');
   });
@@ -568,7 +622,6 @@ function openNotificationTicket(ticketNumber) {
   showSection('tickets');
   viewTicket(ticketNumber);
   
-  // Mark notification as read
   notifications = notifications.map(n => 
     n.ticketNumber === ticketNumber ? {...n, read: true} : n
   );
@@ -594,10 +647,8 @@ function addNotification(ticketNumber, message) {
 }
 
 function updateBadges() {
-  // Update total tickets badge
   document.getElementById('totalBadge').textContent = tickets.length;
   
-  // Update notification badge
   const unreadCount = notifications.filter(n => !n.read).length;
   const notifBadge = document.getElementById('notificationBadge');
   notifBadge.textContent = unreadCount;
@@ -610,12 +661,10 @@ function startPolling() {
     const oldCount = tickets.length;
     await loadTickets();
     
-    // Check for new messages or tickets
     if (tickets.length > oldCount) {
       addNotification(tickets[0].ticketNumber, 'New ticket created');
     }
     
-    // Refresh current ticket if viewing one
     if (currentTicket) {
       const updated = tickets.find(t => t.ticketNumber === currentTicket.ticketNumber);
       if (updated && updated.messages.length > currentTicket.messages.length) {
@@ -623,7 +672,7 @@ function startPolling() {
         viewTicket(currentTicket.ticketNumber);
       }
     }
-  }, 5000); // Poll every 5 seconds
+  }, 5000);
 }
 
 // TYPING INDICATOR
@@ -686,26 +735,12 @@ function logout() {
   }
 }
 
-// Toggle internal notes
-function toggleInternalNotes() {
-  const content = document.getElementById('internalNotesContent');
-  const toggle = document.getElementById('notesToggle');
-  
-  if (content.style.display === 'none') {
-    content.style.display = 'block';
-    toggle.textContent = '▲';
-  } else {
-    content.style.display = 'none';
-    toggle.textContent = '▼';
-  }
-}
-
 // Close notification dropdown when clicking outside
 document.addEventListener('click', (e) => {
   const dropdown = document.getElementById('notificationDropdown');
   const notifBtn = document.querySelector('.notification-btn');
   
-  if (dropdown && !dropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+  if (dropdown && !dropdown.contains(e.target) && !notifBtn?.contains(e.target)) {
     dropdown.classList.remove('show');
   }
 });
@@ -714,6 +749,3 @@ document.addEventListener('click', (e) => {
 window.addEventListener('beforeunload', () => {
   stopTyping();
 });
-
-
-
