@@ -39,7 +39,7 @@ const ticketSchema = new mongoose.Schema({
   status: { 
   type: String, 
   enum: ['New', 'Open', 'On Hold', 'Ongoing', 'In Progress', 'in-progress', 'Resolved', 'Closed Today'],
-  default: 'New' }
+  default: 'New' },
   assignedAgent: { type: String },
   messages: [messageSchema],
   isArchived: { type: Boolean, default: false },
@@ -556,5 +556,6 @@ app.listen(PORT, () => {
   console.log(`📊 Admin Dashboard: http://localhost:${PORT}/admin.html`);
   console.log(`❓ Sub Admin (Questions): http://localhost:${PORT}/subadmin.html`);
 });
+
 
 
