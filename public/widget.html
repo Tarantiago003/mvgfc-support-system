@@ -143,14 +143,172 @@
       background: rgba(255, 255, 255, 0.3);
     }
 
-    /* Lookup Section */
-    .lookup-section {
+    /* Content Area */
+    .widget-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
       padding: 24px;
       text-align: center;
-      flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-height: 100%;
+    }
+
+    .welcome-section h3 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .welcome-section p {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .option-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-btn {
+      padding: 16px;
+      background: white;
+      border: 2px solid #2D7A3E;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+    }
+
+    .option-btn:hover {
+      background: #f0f7f2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 122, 62, 0.1);
+    }
+
+    .option-btn-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .option-btn-title {
+      font-weight: 600;
+      color: #2D7A3E;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .option-btn-desc {
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* Create Ticket Section */
+    .create-ticket-section {
+      display: none;
+      padding: 20px;
+    }
+
+    .create-ticket-section.show {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #555;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #2D7A3E;
+    }
+
+    select {
+      background: white;
+      cursor: pointer;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .submit-button {
+      width: 100%;
+      padding: 12px;
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .submit-button:hover {
+      background: #246830;
+    }
+
+    .submit-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .back-link {
+      background: none;
+      border: none;
+      color: #2D7A3E;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 8px 0;
+      text-decoration: underline;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+
+    /* Lookup Section */
+    .lookup-section {
+      display: none;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .lookup-section.show {
+      display: block;
     }
 
     .lookup-section h3 {
@@ -195,6 +353,77 @@
 
     .lookup-button:hover {
       background: #246830;
+    }
+
+    /* Success Message */
+    .success-section {
+      display: none;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .success-section.show {
+      display: block;
+    }
+
+    .success-icon {
+      font-size: 48px;
+      color: #2D7A3E;
+      margin-bottom: 16px;
+    }
+
+    .success-section h3 {
+      color: #2D7A3E;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .success-section p {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .ticket-number-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2D7A3E;
+      margin: 16px 0;
+    }
+
+    .success-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .success-btn {
+      padding: 12px;
+      border: 2px solid #2D7A3E;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .success-btn.primary {
+      background: #2D7A3E;
+      color: white;
+    }
+
+    .success-btn.primary:hover {
+      background: #246830;
+    }
+
+    .success-btn.secondary {
+      background: white;
+      color: #2D7A3E;
+    }
+
+    .success-btn.secondary:hover {
+      background: #f0f7f2;
     }
 
     .error-message {
@@ -497,20 +726,24 @@
     }
 
     /* Scrollbar */
-    .messages-area::-webkit-scrollbar {
+    .messages-area::-webkit-scrollbar,
+    .widget-content::-webkit-scrollbar {
       width: 6px;
     }
 
-    .messages-area::-webkit-scrollbar-track {
+    .messages-area::-webkit-scrollbar-track,
+    .widget-content::-webkit-scrollbar-track {
       background: #f1f1f1;
     }
 
-    .messages-area::-webkit-scrollbar-thumb {
+    .messages-area::-webkit-scrollbar-thumb,
+    .widget-content::-webkit-scrollbar-thumb {
       background: #cbd5e0;
       border-radius: 3px;
     }
 
-    .messages-area::-webkit-scrollbar-thumb:hover {
+    .messages-area::-webkit-scrollbar-thumb:hover,
+    .widget-content::-webkit-scrollbar-thumb:hover {
       background: #a0aec0;
     }
 
@@ -555,21 +788,159 @@
         <button class="close-btn" id="closeBtn">×</button>
       </div>
 
-      <!-- Lookup Section -->
-      <div class="lookup-section" id="lookupSection">
-        <h3>Enter Your Ticket Number</h3>
-        <p>Continue your conversation with support</p>
-        
-        <input 
-          type="text" 
-          class="lookup-input" 
-          id="ticketNumberInput" 
-          placeholder="e.g., 05231"
-          maxlength="10"
-        >
-        <button class="lookup-button" id="lookupButton">View Ticket</button>
-        
-        <div class="error-message" id="errorMessage"></div>
+      <div class="widget-content">
+        <!-- Welcome Section -->
+        <div class="welcome-section" id="welcomeSection">
+          <h3>How can we help you?</h3>
+          <p>Choose an option below to get started</p>
+          
+          <div class="option-buttons">
+            <button class="option-btn" id="newTicketBtn">
+              <span class="option-btn-icon">✉️</span>
+              <div class="option-btn-title">Create New Ticket</div>
+              <div class="option-btn-desc">Submit a new concern or question</div>
+            </button>
+            
+            <button class="option-btn" id="existingTicketBtn">
+              <span class="option-btn-icon">💬</span>
+              <div class="option-btn-title">View Existing Ticket</div>
+              <div class="option-btn-desc">Continue your conversation</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Create Ticket Section -->
+        <div class="create-ticket-section" id="createTicketSection">
+          <button class="back-link" id="backFromCreate">← Back</button>
+          
+          <h3 class="section-title">Submit Your Concern</h3>
+
+          <div class="error-message" id="createErrorMessage"></div>
+
+          <form id="createTicketForm">
+            <div class="form-group">
+              <label for="category">Category *</label>
+              <select id="category" required>
+                <option value="">Select a category</option>
+                <option value="Question">Question</option>
+                <option value="Complaint">Complaint</option>
+                <option value="Feedback">Feedback</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="subjectCategory">Subject *</label>
+              <select id="subjectCategory" required>
+                <option value="">Select a subject</option>
+                <option value="Library Services">Library Services</option>
+                <option value="Student Services">Student Services</option>
+                <option value="Scholarship">Scholarship</option>
+                <option value="Guidance">Guidance</option>
+                <option value="Academics">Academics</option>
+                <option value="Clinic">Clinic</option>
+                <option value="Laboratory Concerns">Laboratory Concerns</option>
+                <option value="Financial Concern">Financial Concern</option>
+                <option value="Registrar">Registrar</option>
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Feedback">Feedback</option>
+                <option value="Concern">Concern</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="otherSubjectGroup" style="display: none;">
+              <label for="otherSubject">Please specify *</label>
+              <input 
+                type="text" 
+                id="otherSubject" 
+                placeholder="Enter your subject"
+                maxlength="200"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="name">Your Name (Optional)</label>
+              <input 
+                type="text" 
+                id="name" 
+                placeholder="Enter your name"
+                maxlength="100"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email (Optional)</label>
+              <input 
+                type="email" 
+                id="email" 
+                placeholder="your.email@example.com"
+                maxlength="100"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="subject">Brief Description *</label>
+              <input 
+                type="text" 
+                id="subject" 
+                placeholder="Brief description"
+                required
+                maxlength="200"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="message">Describe Your Concern *</label>
+              <textarea 
+                id="messageText" 
+                placeholder="Describe in detail..."
+                required
+                maxlength="1000"
+              ></textarea>
+            </div>
+
+            <button type="submit" class="submit-button" id="submitTicketBtn">
+              Submit Ticket
+            </button>
+          </form>
+        </div>
+
+        <!-- Success Section -->
+        <div class="success-section" id="successSection">
+          <div class="success-icon">✓</div>
+          <h3>Ticket Created!</h3>
+          <p>Your ticket number is:</p>
+          <div class="ticket-number-display" id="ticketNumberDisplay">#00000</div>
+          <p>Save this number for future reference</p>
+          
+          <div class="success-buttons">
+            <button class="success-btn primary" id="viewChatBtn">
+              💬 Start Chatting
+            </button>
+            <button class="success-btn secondary" id="createAnotherBtn">
+              Create Another Ticket
+            </button>
+          </div>
+        </div>
+
+        <!-- Lookup Section -->
+        <div class="lookup-section" id="lookupSection">
+          <button class="back-link" id="backFromLookup">← Back</button>
+          
+          <h3>Enter Ticket Number</h3>
+          <p>Continue your conversation</p>
+          
+          <input 
+            type="text" 
+            class="lookup-input" 
+            id="ticketNumberInput" 
+            placeholder="e.g., 05231"
+            maxlength="10"
+          >
+          <button class="lookup-button" id="lookupButton">View Ticket</button>
+          
+          <div class="error-message" id="lookupErrorMessage"></div>
+        </div>
       </div>
 
       <!-- Chat Interface -->
@@ -580,7 +951,7 @@
             <span class="ticket-status" id="displayTicketStatus">New</span>
           </div>
           <div class="ticket-subject" id="displayTicketSubject">Loading...</div>
-          <button class="back-to-lookup" id="backToLookup">← Change Ticket</button>
+          <button class="back-to-lookup" id="backToMain">← Back to Menu</button>
         </div>
 
         <div class="messages-area" id="messagesArea">
@@ -614,20 +985,41 @@
     let typingTimeout = null;
     let isCurrentlyTyping = false;
 
+    // Elements
     const chatButton = document.getElementById('chatButton');
     const chatWindow = document.getElementById('chatWindow');
     const closeBtn = document.getElementById('closeBtn');
+    
+    const welcomeSection = document.getElementById('welcomeSection');
+    const createTicketSection = document.getElementById('createTicketSection');
+    const successSection = document.getElementById('successSection');
     const lookupSection = document.getElementById('lookupSection');
     const chatInterface = document.getElementById('chatInterface');
-    const ticketNumberInput = document.getElementById('ticketNumberInput');
+    
+    const newTicketBtn = document.getElementById('newTicketBtn');
+    const existingTicketBtn = document.getElementById('existingTicketBtn');
+    const backFromCreate = document.getElementById('backFromCreate');
+    const backFromLookup = document.getElementById('backFromLookup');
+    const backToMain = document.getElementById('backToMain');
+    
+    const createTicketForm = document.getElementById('createTicketForm');
+    const submitTicketBtn = document.getElementById('submitTicketBtn');
+    const ticketNumberDisplay = document.getElementById('ticketNumberDisplay');
+    const viewChatBtn = document.getElementById('viewChatBtn');
+    const createAnotherBtn = document.getElementById('createAnotherBtn');
+    
     const lookupButton = document.getElementById('lookupButton');
-    const errorMessage = document.getElementById('errorMessage');
+    const ticketNumberInput = document.getElementById('ticketNumberInput');
+    
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
     const messagesArea = document.getElementById('messagesArea');
-    const backToLookup = document.getElementById('backToLookup');
     const emojiButton = document.getElementById('emojiButton');
     const emojiPicker = document.getElementById('emojiPicker');
+    
+    const subjectCategorySelect = document.getElementById('subjectCategory');
+    const otherSubjectGroup = document.getElementById('otherSubjectGroup');
+    const otherSubjectInput = document.getElementById('otherSubject');
 
     // Emoji list
     const emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','💪','🙏','✍️','💅','🤳','💃','🕺','💯','🧘','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','⭐','🌟','💫','✨','🔥','💥','💯','✅','❌','⚠️','📌','📍','📝','📕','💬','💭','🗨','👀','💡','💰','💸','📱','💻','⌨️','🖱','🖨','📷','📹','🎥','🎬','📺','📻','🎵','🎶','🎼','🎧','🎤','🎸','🎹','🎺','🎷','🥁','🎮','🕹','🎯','🎲','🎰','🎳'];
@@ -641,15 +1033,114 @@
       emojiPicker.appendChild(span);
     });
 
-    // Toggle widget
+    // Navigation
     chatButton.addEventListener('click', () => {
       chatWindow.classList.add('show');
       chatButton.style.display = 'none';
+      showSection('welcome');
     });
 
     closeBtn.addEventListener('click', () => {
       chatWindow.classList.remove('show');
       chatButton.style.display = 'flex';
+    });
+
+    newTicketBtn.addEventListener('click', () => showSection('create'));
+    existingTicketBtn.addEventListener('click', () => showSection('lookup'));
+    backFromCreate.addEventListener('click', () => showSection('welcome'));
+    backFromLookup.addEventListener('click', () => showSection('welcome'));
+    backToMain.addEventListener('click', () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+      currentTicket = null;
+      currentTicketNumber = null;
+      stopTyping();
+      showSection('welcome');
+    });
+
+    // Show/hide other subject field
+    subjectCategorySelect.addEventListener('change', function() {
+      if (this.value === 'Other') {
+        otherSubjectGroup.style.display = 'block';
+        otherSubjectInput.required = true;
+      } else {
+        otherSubjectGroup.style.display = 'none';
+        otherSubjectInput.required = false;
+        otherSubjectInput.value = '';
+      }
+    });
+
+    // Create ticket
+    createTicketForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const category = document.getElementById('category').value.trim();
+      let subjectCategory = document.getElementById('subjectCategory').value.trim();
+      const name = document.getElementById('name').value.trim() || 'Anonymous';
+      const email = document.getElementById('email').value.trim();
+      const subject = document.getElementById('subject').value.trim();
+      const messageText = document.getElementById('messageText').value.trim();
+
+      if (subjectCategory === 'Other') {
+        const otherSubject = document.getElementById('otherSubject').value.trim();
+        if (!otherSubject) {
+          showError('createErrorMessage', 'Please specify your subject');
+          return;
+        }
+        subjectCategory = otherSubject;
+      }
+
+      if (!category || !subjectCategory || !subject || !messageText) {
+        showError('createErrorMessage', 'Please fill in all required fields');
+        return;
+      }
+
+      submitTicketBtn.disabled = true;
+      submitTicketBtn.textContent = 'Creating...';
+
+      try {
+        const response = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            category,
+            subjectCategory,
+            username: name,
+            email,
+            subject,
+            message: messageText
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicketNumber = data.ticket.ticketNumber;
+          ticketNumberDisplay.textContent = `#${currentTicketNumber}`;
+          createTicketForm.reset();
+          showSection('success');
+        } else {
+          showError('createErrorMessage', data.error || 'Failed to create ticket');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('createErrorMessage', 'Connection error. Please try again.');
+      } finally {
+        submitTicketBtn.disabled = false;
+        submitTicketBtn.textContent = 'Submit Ticket';
+      }
+    });
+
+    viewChatBtn.addEventListener('click', () => {
+      if (currentTicketNumber) {
+        lookupTicket(currentTicketNumber);
+      }
+    });
+
+    createAnotherBtn.addEventListener('click', () => {
+      currentTicketNumber = null;
+      showSection('create');
     });
 
     // Lookup ticket
@@ -664,16 +1155,6 @@
       if (e.key === 'Enter') {
         lookupButton.click();
       }
-    });
-
-    // Back to lookup
-    backToLookup.addEventListener('click', () => {
-      chatInterface.classList.remove('show');
-      lookupSection.style.display = 'flex';
-      if (refreshInterval) clearInterval(refreshInterval);
-      currentTicket = null;
-      currentTicketNumber = null;
-      stopTyping();
     });
 
     // Send message
@@ -717,11 +1198,37 @@
       emojiPicker.classList.remove('show');
     }
 
+    function showSection(section) {
+      welcomeSection.style.display = 'none';
+      createTicketSection.classList.remove('show');
+      successSection.classList.remove('show');
+      lookupSection.classList.remove('show');
+      chatInterface.classList.remove('show');
+
+      switch(section) {
+        case 'welcome':
+          welcomeSection.style.display = 'flex';
+          break;
+        case 'create':
+          createTicketSection.classList.add('show');
+          break;
+        case 'success':
+          successSection.classList.add('show');
+          break;
+        case 'lookup':
+          lookupSection.classList.add('show');
+          break;
+        case 'chat':
+          chatInterface.classList.add('show');
+          break;
+      }
+    }
+
     async function lookupTicket(ticketNumber) {
-      errorMessage.classList.remove('show');
+      document.getElementById('lookupErrorMessage').classList.remove('show');
 
       if (!ticketNumber) {
-        showError('Please enter a ticket number');
+        showError('lookupErrorMessage', 'Please enter a ticket number');
         return;
       }
 
@@ -732,24 +1239,19 @@
         if (data.success) {
           currentTicket = data.ticket;
           currentTicketNumber = ticketNumber;
-          showChatInterface();
+          showSection('chat');
           displayTicketInfo();
           displayMessages(data.typing);
           
           if (refreshInterval) clearInterval(refreshInterval);
           refreshInterval = setInterval(() => loadTicketUpdates(), 3000);
         } else {
-          showError('Ticket not found. Please check your ticket number.');
+          showError('lookupErrorMessage', 'Ticket not found');
         }
       } catch (error) {
         console.error('Error:', error);
-        showError('Connection error. Please try again.');
+        showError('lookupErrorMessage', 'Connection error');
       }
-    }
-
-    function showChatInterface() {
-      lookupSection.style.display = 'none';
-      chatInterface.classList.add('show');
     }
 
     function displayTicketInfo() {
@@ -845,12 +1347,9 @@
           messageInput.value = '';
           messageInput.style.height = 'auto';
           displayMessages();
-        } else {
-          showError('Failed to send message.');
         }
       } catch (error) {
         console.error('Error:', error);
-        showError('Connection error.');
       } finally {
         sendButton.disabled = false;
         sendButton.textContent = 'Send';
@@ -898,11 +1397,12 @@
       }
     }
 
-    function showError(message) {
-      errorMessage.textContent = message;
-      errorMessage.classList.add('show');
+    function showError(elementId, message) {
+      const errorEl = document.getElementById(elementId);
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
       setTimeout(() => {
-        errorMessage.classList.remove('show');
+        errorEl.classList.remove('show');
       }, 5000);
     }
 
