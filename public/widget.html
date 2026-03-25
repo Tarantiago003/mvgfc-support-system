@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MVGFC Chat Widget</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Widget Container */
+    .chat-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Minimized Button */
+    .chat-button {
+      width: 180px;
+      height: 60px;
+      background: linear-gradient(135deg, #2D7A3E 0%, #1e5a2a 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(45, 122, 62, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s;
+    }
+
+    .chat-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(45, 122, 62, 0.5);
+    }
+
+    .chat-button .icon {
+      font-size: 24px;
+    }
+
+    .notification-dot {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      width: 12px;
+      height: 12px;
+      background: #ff4444;
+      border-radius: 50%;
+      border: 2px solid white;
+      display: none;
+    }
+
+    .notification-dot.show {
+      display: block;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+
+    /* Expanded Widget */
+    .chat-window {
+      display: none;
+      width: 380px;
+      height: 600px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .chat-window.show {
+      display: flex;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Widget Header */
+    .widget-header {
+      background: linear-gradient(135deg, #2D7A3E 0%, #1e5a2a 100%);
+      color: white;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .widget-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .widget-subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Lookup Section */
+    .lookup-section {
+      padding: 24px;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .lookup-section h3 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .lookup-section p {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .lookup-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      transition: border-color 0.3s;
+    }
+
+    .lookup-input:focus {
+      outline: none;
+      border-color: #2D7A3E;
+    }
+
+    .lookup-button {
+      width: 100%;
+      padding: 12px;
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .lookup-button:hover {
+      background: #246830;
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 12px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    /* Chat Interface */
+    .chat-interface {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .chat-interface.show {
+      display: flex;
+    }
+
+    .ticket-info {
+      padding: 12px 16px;
+      background: #fafafa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .ticket-info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .ticket-number {
+      font-weight: bold;
+      color: #2D7A3E;
+      font-size: 14px;
+    }
+
+    .ticket-status {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-new { background: #e3f2fd; color: #1976d2; }
+    .status-open { background: #fff3e0; color: #f57c00; }
+    .status-ongoing { background: #e8f5e9; color: #2D7A3E; }
+    .status-resolved { background: #e0e0e0; color: #666; }
+    .status-on-hold { background: #ffecb3; color: #f57f17; }
+    .status-closed-today { background: #f5f5f5; color: #999; }
+
+    .ticket-subject {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .back-to-lookup {
+      background: none;
+      border: none;
+      color: #2D7A3E;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    /* Messages Area */
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background: #f8f9fa;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message.customer {
+      align-items: flex-end;
+    }
+
+    .message.admin {
+      align-items: flex-start;
+    }
+
+    .message-bubble {
+      max-width: 75%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .message.customer .message-bubble {
+      background: #2D7A3E;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.admin .message-bubble {
+      background: white;
+      color: #333;
+      border: 1px solid #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-sender {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      padding: 0 4px;
+    }
+
+    .message.customer .message-sender {
+      color: #2D7A3E;
+    }
+
+    .message.admin .message-sender {
+      color: #666;
+    }
+
+    .message-time {
+      font-size: 10px;
+      opacity: 0.7;
+      margin-top: 2px;
+      padding: 0 4px;
+    }
+
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      padding: 10px 14px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px;
+      max-width: 60px;
+    }
+
+    .typing-indicator.show {
+      display: flex;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: #999;
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingAnimation {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+    }
+
+    /* Input Area */
+    .input-area {
+      padding: 12px;
+      border-top: 1px solid #e0e0e0;
+      background: white;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .message-input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .message-input {
+      width: 100%;
+      padding: 10px 36px 10px 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      min-height: 40px;
+      max-height: 100px;
+    }
+
+    .message-input:focus {
+      outline: none;
+      border-color: #2D7A3E;
+    }
+
+    .emoji-button {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-button:hover {
+      background: #f0f0f0;
+    }
+
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      bottom: 50px;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 280px;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .emoji-picker.show {
+      display: block;
+    }
+
+    .emoji-picker-emoji {
+      display: inline-block;
+      font-size: 20px;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .emoji-picker-emoji:hover {
+      background: #f0f0f0;
+    }
+
+    .send-button {
+      padding: 10px 16px;
+      background: #2D7A3E;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+      white-space: nowrap;
+    }
+
+    .send-button:hover {
+      background: #246830;
+    }
+
+    .send-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Scrollbar */
+    .messages-area::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .messages-area::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .messages-area::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 3px;
+    }
+
+    .messages-area::-webkit-scrollbar-thumb:hover {
+      background: #a0aec0;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 480px) {
+      .chat-widget {
+        bottom: 10px;
+        right: 10px;
+      }
+
+      .chat-window {
+        width: calc(100vw - 20px);
+        height: calc(100vh - 20px);
+        max-width: 380px;
+        max-height: 600px;
+      }
+
+      .chat-button {
+        width: 160px;
+        height: 56px;
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-widget">
+    <!-- Minimized Button -->
+    <button class="chat-button" id="chatButton">
+      <span class="icon">💬</span>
+      <span>Let's Chat!</span>
+      <span class="notification-dot" id="notificationDot"></span>
+    </button>
+
+    <!-- Expanded Widget -->
+    <div class="chat-window" id="chatWindow">
+      <div class="widget-header">
+        <div>
+          <div class="widget-title">Message Us</div>
+          <div class="widget-subtitle">MVGFC Support</div>
+        </div>
+        <button class="close-btn" id="closeBtn">×</button>
+      </div>
+
+      <!-- Lookup Section -->
+      <div class="lookup-section" id="lookupSection">
+        <h3>Enter Your Ticket Number</h3>
+        <p>Continue your conversation with support</p>
+        
+        <input 
+          type="text" 
+          class="lookup-input" 
+          id="ticketNumberInput" 
+          placeholder="e.g., 05231"
+          maxlength="10"
+        >
+        <button class="lookup-button" id="lookupButton">View Ticket</button>
+        
+        <div class="error-message" id="errorMessage"></div>
+      </div>
+
+      <!-- Chat Interface -->
+      <div class="chat-interface" id="chatInterface">
+        <div class="ticket-info" id="ticketInfo">
+          <div class="ticket-info-header">
+            <span class="ticket-number" id="displayTicketNumber">#00000</span>
+            <span class="ticket-status" id="displayTicketStatus">New</span>
+          </div>
+          <div class="ticket-subject" id="displayTicketSubject">Loading...</div>
+          <button class="back-to-lookup" id="backToLookup">← Change Ticket</button>
+        </div>
+
+        <div class="messages-area" id="messagesArea">
+          <!-- Messages will be inserted here -->
+        </div>
+
+        <div class="input-area">
+          <div class="input-container">
+            <div class="message-input-wrapper">
+              <textarea 
+                class="message-input" 
+                id="messageInput" 
+                placeholder="Type your message..."
+                rows="1"
+                maxlength="1000"
+              ></textarea>
+              <button class="emoji-button" id="emojiButton">😊</button>
+              <div class="emoji-picker" id="emojiPicker"></div>
+            </div>
+            <button class="send-button" id="sendButton">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTicket = null;
+    let currentTicketNumber = null;
+    let refreshInterval = null;
+    let typingTimeout = null;
+    let isCurrentlyTyping = false;
+
+    const chatButton = document.getElementById('chatButton');
+    const chatWindow = document.getElementById('chatWindow');
+    const closeBtn = document.getElementById('closeBtn');
+    const lookupSection = document.getElementById('lookupSection');
+    const chatInterface = document.getElementById('chatInterface');
+    const ticketNumberInput = document.getElementById('ticketNumberInput');
+    const lookupButton = document.getElementById('lookupButton');
+    const errorMessage = document.getElementById('errorMessage');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const messagesArea = document.getElementById('messagesArea');
+    const backToLookup = document.getElementById('backToLookup');
+    const emojiButton = document.getElementById('emojiButton');
+    const emojiPicker = document.getElementById('emojiPicker');
+
+    // Emoji list
+    const emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','💪','🙏','✍️','💅','🤳','💃','🕺','💯','🧘','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','⭐','🌟','💫','✨','🔥','💥','💯','✅','❌','⚠️','📌','📍','📝','📕','💬','💭','🗨','👀','💡','💰','💸','📱','💻','⌨️','🖱','🖨','📷','📹','🎥','🎬','📺','📻','🎵','🎶','🎼','🎧','🎤','🎸','🎹','🎺','🎷','🥁','🎮','🕹','🎯','🎲','🎰','🎳'];
+
+    // Populate emoji picker
+    emojis.forEach(emoji => {
+      const span = document.createElement('span');
+      span.className = 'emoji-picker-emoji';
+      span.textContent = emoji;
+      span.onclick = () => insertEmoji(emoji);
+      emojiPicker.appendChild(span);
+    });
+
+    // Toggle widget
+    chatButton.addEventListener('click', () => {
+      chatWindow.classList.add('show');
+      chatButton.style.display = 'none';
+    });
+
+    closeBtn.addEventListener('click', () => {
+      chatWindow.classList.remove('show');
+      chatButton.style.display = 'flex';
+    });
+
+    // Lookup ticket
+    lookupButton.addEventListener('click', () => {
+      const ticketNumber = ticketNumberInput.value.trim().replace('#', '');
+      if (ticketNumber) {
+        lookupTicket(ticketNumber);
+      }
+    });
+
+    ticketNumberInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        lookupButton.click();
+      }
+    });
+
+    // Back to lookup
+    backToLookup.addEventListener('click', () => {
+      chatInterface.classList.remove('show');
+      lookupSection.style.display = 'flex';
+      if (refreshInterval) clearInterval(refreshInterval);
+      currentTicket = null;
+      currentTicketNumber = null;
+      stopTyping();
+    });
+
+    // Send message
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Auto-resize textarea
+    messageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+
+    // Typing indicator
+    messageInput.addEventListener('input', handleTyping);
+    messageInput.addEventListener('blur', stopTyping);
+
+    // Emoji picker
+    emojiButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      emojiPicker.classList.toggle('show');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+        emojiPicker.classList.remove('show');
+      }
+    });
+
+    function insertEmoji(emoji) {
+      const cursorPos = messageInput.selectionStart;
+      const textBefore = messageInput.value.substring(0, cursorPos);
+      const textAfter = messageInput.value.substring(cursorPos);
+      messageInput.value = textBefore + emoji + textAfter;
+      messageInput.focus();
+      messageInput.selectionStart = messageInput.selectionEnd = cursorPos + emoji.length;
+      emojiPicker.classList.remove('show');
+    }
+
+    async function lookupTicket(ticketNumber) {
+      errorMessage.classList.remove('show');
+
+      if (!ticketNumber) {
+        showError('Please enter a ticket number');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/tickets/${ticketNumber}`);
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicket = data.ticket;
+          currentTicketNumber = ticketNumber;
+          showChatInterface();
+          displayTicketInfo();
+          displayMessages(data.typing);
+          
+          if (refreshInterval) clearInterval(refreshInterval);
+          refreshInterval = setInterval(() => loadTicketUpdates(), 3000);
+        } else {
+          showError('Ticket not found. Please check your ticket number.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Connection error. Please try again.');
+      }
+    }
+
+    function showChatInterface() {
+      lookupSection.style.display = 'none';
+      chatInterface.classList.add('show');
+    }
+
+    function displayTicketInfo() {
+      const statusClass = currentTicket.status.toLowerCase().replace(/ /g, '-');
+      document.getElementById('displayTicketNumber').textContent = `#${currentTicket.ticketNumber}`;
+      document.getElementById('displayTicketStatus').textContent = currentTicket.status;
+      document.getElementById('displayTicketStatus').className = `ticket-status status-${statusClass}`;
+      document.getElementById('displayTicketSubject').textContent = currentTicket.subject;
+    }
+
+    function displayMessages(typingUser = null) {
+      if (!currentTicket.messages || currentTicket.messages.length === 0) {
+        messagesArea.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No messages yet</div>';
+        return;
+      }
+
+      const visibleMessages = currentTicket.messages.filter(msg => !msg.isInternal);
+
+      let messagesHTML = visibleMessages.map(msg => {
+        const isCustomer = msg.sender === currentTicket.username;
+        const displayName = msg.sender === 'Admin' ? 'Career Coach' : escapeHtml(msg.sender);
+        return `
+          <div class="message ${isCustomer ? 'customer' : 'admin'}">
+            <div class="message-sender">${displayName}</div>
+            <div class="message-bubble">
+              ${escapeHtml(msg.message)}
+              <div class="message-time">${formatTime(msg.createdAt)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (typingUser && typingUser !== currentTicket.username) {
+        messagesHTML += `
+          <div class="typing-indicator show">
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      messagesArea.innerHTML = messagesHTML;
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    async function loadTicketUpdates() {
+      if (!currentTicketNumber) return;
+
+      try {
+        const response = await fetch(`/api/tickets/${currentTicketNumber}`);
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicket = data.ticket;
+          displayTicketInfo();
+          displayMessages(data.typing);
+        }
+      } catch (error) {
+        console.error('Error refreshing ticket:', error);
+      }
+    }
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+
+      if (!message || !currentTicket) return;
+
+      stopTyping();
+
+      sendButton.disabled = true;
+      sendButton.textContent = 'Sending...';
+
+      try {
+        const response = await fetch(`/api/tickets/${currentTicketNumber}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: currentTicket.username,
+            message: message,
+            isInternal: false
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentTicket = data.ticket;
+          messageInput.value = '';
+          messageInput.style.height = 'auto';
+          displayMessages();
+        } else {
+          showError('Failed to send message.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Connection error.');
+      } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = 'Send';
+      }
+    }
+
+    function handleTyping() {
+      if (!currentTicketNumber) return;
+
+      if (!isCurrentlyTyping) {
+        isCurrentlyTyping = true;
+        updateTypingStatus(true);
+      }
+
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        stopTyping();
+      }, 3000);
+    }
+
+    function stopTyping() {
+      if (isCurrentlyTyping) {
+        isCurrentlyTyping = false;
+        updateTypingStatus(false);
+      }
+      clearTimeout(typingTimeout);
+    }
+
+    async function updateTypingStatus(isTyping) {
+      if (!currentTicketNumber || !currentTicket) return;
+
+      try {
+        await fetch(`/api/tickets/${currentTicketNumber}/typing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user: currentTicket.username,
+            isTyping: isTyping
+          })
+        });
+      } catch (error) {
+        console.error('Error updating typing status:', error);
+      }
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add('show');
+      setTimeout(() => {
+        errorMessage.classList.remove('show');
+      }, 5000);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatTime(date) {
+      return new Date(date).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+      stopTyping();
+    });
+  </script>
+</body>
+</html>
