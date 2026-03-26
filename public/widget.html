@@ -113,6 +113,21 @@
       align-items: center;
     }
 
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .widget-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1px;
+    }
+
     .widget-title {
       font-size: 18px;
       font-weight: 600;
@@ -781,17 +796,12 @@
     <!-- Expanded Widget -->
     <div class="chat-window" id="chatWindow">
       <div class="widget-header">
-        <div>
-          <div class="widget-title">Message Us</div>
-
-          <!--
-          <a href="destination_url.html">
-           <img src="GCT-logo.png" alt="GCT-CRM">
-          </a>-->
-
-
-          <div class="widget-subtitle">Gallegan Care Team</div>
-
+        <div class="header-left">
+          <img src="logo.png" alt="Logo" class="widget-logo" id="widgetLogo">
+          <div>
+            <div class="widget-title">Message Us</div>
+            <div class="widget-subtitle">MVGFC Support</div>
+          </div>
         </div>
         <button class="close-btn" id="closeBtn">×</button>
       </div>
